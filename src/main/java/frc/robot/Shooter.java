@@ -15,17 +15,18 @@ public class Shooter {
     private Intake intake;
 
     //CONSTANTS
-    private final double cameraHeight = 0;
-    private final double ballLaunchHeight = 0;  
-    private final double targetHeight = 0;
+    private final double cameraHeight = 1.7916667;              //TEST VALUES
+    private final double ballLaunchHeight = 1.5;  
+    private final double targetHeight = 4.1666667;
 
     private final double cameraAngleDegrees = 0;
-    private final double shooterAngleDegrees = 0;
-    private final double flywheelRadiusFeet = 0;
+    private final double shooterAngleDegrees = 70.0; 
+    private final double flywheelRadiusFeet = 0.2083333;
 
-    private final double minimumShootingDistance = 0;
-    private final double maximumTrackingDistance = 0;   //maximum distance limelight can track accurately
-    private final double distanceFromLaunchPadtoHub = 0;
+    private final double cameraToBallDistance = -0.2916667;
+    private final double minimumShootingDistance = 5;
+    private final double maximumTrackingDistance = 13;          //maximum distance limelight can track accurately
+    private final double distanceFromLaunchPadtoHub = 20;
 
     //CONSTRUCTOR: the shooter will use one FALCON 500 Motor for the flywheel and will use the limelight to aim
     public Shooter(Limelight newlimelight, WPI_TalonFX newShooterMotor, Intake newIntake){    
@@ -34,9 +35,9 @@ public class Shooter {
         intake = newIntake;
     }
 
-    //STATES: the shooter will either shoot with a set speed from the launch pad, adjust its RPM according to the limelight, or not shoot at all 
+    //STATES: the shooter will either shoot with a set speed from the launch pad, adjust its RPM according to the limelight, shoot in the low hub, or not shoot at all
     private enum state{
-        STOP, LOWHUBSHOOT, ADJUSTANDSHOOT, LAUNCHPADSHOOT
+        STOP, LOWHUB, UPPERHUB, LAUNCHPAD, TESTING
     }
 
     private state shooterState = state.STOP; //default state will be set to STOP
@@ -46,32 +47,40 @@ public class Shooter {
     }
 
     public void setLowHubShoot(){
-        shooterState = state.LOWHUBSHOOT;
+        shooterState = state.LOWHUB;
     }
 
-    public void setAutoShoot(){
-        shooterState = state.ADJUSTANDSHOOT;
+    public void setUpperHubShoot(){
+        shooterState = state.UPPERHUB;
     }
 
     public void setLaunchPadShoot(){
-        shooterState = state.LAUNCHPADSHOOT;
+        shooterState = state.LAUNCHPAD;
     }
 
-    //Method to calculate the distance from the ball to the rim of the upper hub
+    public void setTesting(){
+        shooterState = state.TESTING;
+    }
+
+    public void setSpeedManual(double input){
+        shooterMotor.set(input);
+    }
+
+    //Method to calculate the distance from the BALL to the CENTER of the upper hub
     private double getDistance(){
         double heightDiff = targetHeight - cameraHeight;
         double cameraAngleRad = Math.toRadians(cameraAngleDegrees);
         double angleDiffRad = Math.toRadians(limelight.getYOffset());
 
         if(limelight.checkTargetSeen()){
-            return (heightDiff/Math.tan(cameraAngleRad + angleDiffRad));
+            return cameraToBallDistance + (heightDiff/Math.tan(cameraAngleRad + angleDiffRad)) + 2;
         }
         else{
             return -1;
         }
     }
 
-    //Method to calculate the ideal initial velocity of a ball given a distance
+    //Method to calculate the ideal initial velocity of the ball given a distance
     private double getIdealVelocity(double distance){
         double heightDiff = targetHeight - ballLaunchHeight;
         double shooterAngleRad = Math.toRadians(shooterAngleDegrees);
@@ -85,7 +94,7 @@ public class Shooter {
         }
     }
 
-    //Method to calculate the ideal RPM given a velocity
+    //Method to calculate the ideal RPM given a velocity 
     private double getIdealRPM(double velocity){
         return (30 * velocity)/(Math.PI * flywheelRadiusFeet);
     }
@@ -98,9 +107,9 @@ public class Shooter {
 
     //Checks if the RPM is within the +- 1 foot error margin
     private boolean checkIfRPMWithinRange(){
-        double actualRPM = getActualRPM();
-        double upperLimit = getIdealRPM(getIdealVelocity(getDistance() + 3));
-        double lowerLimit = getIdealRPM(getIdealVelocity(getDistance() + 1));
+        double actualRPM = Math.abs(getActualRPM());
+        double upperLimit = getIdealRPM(getIdealVelocity(getDistance() + 1));
+        double lowerLimit = getIdealRPM(getIdealVelocity(getDistance() - 1));
 
         return (actualRPM < upperLimit && actualRPM > lowerLimit);
     }
@@ -112,11 +121,13 @@ public class Shooter {
 
     //Method to display sensor and calculated values
     public void displayValues(){
-        SmartDashboard.putNumber("Distance from Rim", getDistance());
+        SmartDashboard.putNumber("Distance from Center of Upper Hub", getDistance());
         SmartDashboard.putNumber("Ideal Velocity", getIdealVelocity(getDistance()) + 2);
         SmartDashboard.putNumber("Ideal RPM", getIdealRPM(getIdealVelocity(getDistance() + 2)));
+        SmartDashboard.putNumber("Actual RPM", getActualRPM());  
         SmartDashboard.putNumber("Raw Sensor Velocity", shooterMotor.getSelectedSensorVelocity());
-        SmartDashboard.putNumber("Actual RPM", getActualRPM());
+        SmartDashboard.putBoolean("Within RPM Range?", checkIfRPMWithinRange());
+        SmartDashboard.putBoolean("Within Shooting Distance?", checkIfWithinShootingDistance());
     }
 
     //stops the shooter
@@ -125,32 +136,58 @@ public class Shooter {
     }
 
     private void lowHubShoot(){
-        shooterMotor.set(0);        //set to a value later
-    }
+        double setSpeed = 0;               //set values later
+        double upperLimit = 0;
+        double lowerLimit = 0;
 
-    //shoots the ball if within a certain distance and if the RPM is good enough
-    private void adjustShoot(){
-        double setSpeed = (getIdealRPM(getIdealVelocity(getDistance() + 2)) * 2048)/600;
-        
-        if(checkIfRPMWithinRange() && checkIfWithinShootingDistance()){
+        shooterMotor.set(setSpeed);        //set to a value later
+
+        if(getActualRPM() < upperLimit && getActualRPM() > lowerLimit){
             intake.setFeedingMode();
         }
         else{
-            shooterMotor.set(ControlMode.Velocity, setSpeed);
+            intake.setStopMode();
         }
+
     }
 
+    //Checks if the shooting distance is optimal, revs the shooter to a desired RPM, and feeds the ball in when it reaches the desired RPM
+    private void upperHubShoot(){
+        //double setSpeed = (getIdealRPM(getIdealVelocity(getDistance() + 2)) * 2048)/600;      
+        double setSpeed = (getIdealRPM(getIdealVelocity(getDistance() + 2)) + 230) / 6640 ;     //multiplies the desired rpm by a proportion to get the desired percent output
+        
+        if(checkIfWithinShootingDistance()){
+            shooterMotor.set(-setSpeed);                                                        //Will use some sort of PID later, just using a proportion for now
+        }
+        else{
+            shooterMotor.stopMotor();
+        }
+
+        if(checkIfRPMWithinRange()){
+            intake.setFeedingMode();
+        }
+        else{
+            intake.setStopMode();
+        }
+        
+    }
+
+    //Sets the shooter to a set RPM to shoot from the Launch Pad, feeds the ball in when reaching a certain RPM
     private void launchPadShoot(){
-        double setSpeed = getIdealRPM(getIdealVelocity(distanceFromLaunchPadtoHub));
+        //double setSpeed = (getIdealRPM(getIdealVelocity(distanceFromLaunchPadtoHub)) * 2048)/ 600;    
+        double setSpeed = (getIdealRPM(getIdealVelocity(distanceFromLaunchPadtoHub)) + 300) / 6600 ;    //multiplies the desired rpm by a proportion to get the desired percent output
         double upperLimit = getIdealRPM(getIdealVelocity(distanceFromLaunchPadtoHub + 1));
         double lowerLimit = getIdealRPM(getIdealVelocity(distanceFromLaunchPadtoHub - 1));
     
-        if(getActualRPM() > lowerLimit && getActualRPM() < upperLimit){
+        shooterMotor.set(-setSpeed);                                                                    //Will use some sort of PID later, just using a proportion for now
+
+        if(Math.abs(getActualRPM()) > lowerLimit && Math.abs(getActualRPM()) < upperLimit){
             intake.setFeedingMode();
         }
         else{
-            shooterMotor.set(ControlMode.Velocity, setSpeed);
+            intake.setStopMode();
         }
+        
     }
 
     public void run(){
@@ -158,14 +195,17 @@ public class Shooter {
             case STOP:
                 stop();
             break;
-            case LOWHUBSHOOT:
+            case LOWHUB:
                 lowHubShoot();
             break;
-            case ADJUSTANDSHOOT:
-                adjustShoot();
+            case UPPERHUB:
+                upperHubShoot();
             break;
-            case LAUNCHPADSHOOT:
+            case LAUNCHPAD:
                 launchPadShoot();
+            break;
+            case TESTING:
+
             break;
         }
 

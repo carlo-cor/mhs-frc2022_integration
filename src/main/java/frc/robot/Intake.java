@@ -56,7 +56,7 @@ public class Intake {
     public void stopMotor(){ // stops motor
         intakeMotor.set(0);
     }
-
+    /*
     private void motorCheckIntake(){ //intakes cargo and holds it when switch is being triggered
         if (cargoCheck()){
             stopMotor();
@@ -74,6 +74,7 @@ public class Intake {
             stopMotor();
         }
     }
+    */
 
     public void displayMethod(){
         SmartDashboard.putBoolean("Limit switch", cargoCheck()); // displays if the limit switch is being triggered
@@ -84,7 +85,7 @@ public class Intake {
 
         switch(mode){
             case INTAKING: // sets intake to intaking stage
-            motorCheckIntake();
+            //  motorCheckIntake();
             break; 
 
             case OUTTAKING: // sets intake to outtaking stage
@@ -92,7 +93,7 @@ public class Intake {
             break;
 
             case FEEDING: // sets intake to feeding stage
-            feeding();
+            //  feeding();
             break;
 
             case STOP: // sets motor to stop stage
