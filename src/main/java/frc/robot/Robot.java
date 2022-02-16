@@ -20,7 +20,6 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.kauailabs.navx.frc.AHRS;
-import edu.wpi.first.wpilibj.AnalogInput;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -83,6 +82,8 @@ public class Robot extends TimedRobot {
   private DigitalInput backLSwitch;
   private AHRS gyro;
 
+  private HangPivot hangPivotObj;
+  private HangElevator hangElevObj;
   private Hang hangObj;
 
   ///////////////////////////////////////////////////////////
@@ -118,23 +119,6 @@ public class Robot extends TimedRobot {
   private Shooter shooterObj;
 
   ///////////////////////////////////////////////////////////
-  //                       CAMERA                          //
-  ///////////////////////////////////////////////////////////
-
-  /*
-  |
-  |  WIDEFIELD CAMERA: * PORT NEEDED *
-  |  INTAKE CAMERA: * PORT NEEDED *
-  |  HANG CAMERA: * PORT NEEDED *
-  |
-  */
-
-  private Camera wideFieldCamera;
-  private Camera intakeCamera;
-  private Camera hangCamera;
-  private AnalogInput lineTrack;
-
-  ///////////////////////////////////////////////////////////
   //                       JOYSTICKS                       //
   ///////////////////////////////////////////////////////////
 
@@ -164,26 +148,27 @@ public class Robot extends TimedRobot {
   public void robotInit() {
 
     /* ! WARNING !: PORTS ARE NOT FINAL AND NEED TO BE CHECKED STILL */
-    lineTrack = new AnalogInput(0);
+
     ///////////////////////////////////////////////////////////
     //                        DRIVE                          //
     ///////////////////////////////////////////////////////////
-    /*
-    frontLeft = new CANSparkMax(6, MotorType.kBrushless);
-    backLeft = new CANSparkMax(15, MotorType.kBrushless);
-    frontRight = new CANSparkMax(16, MotorType.kBrushless);
+
+    frontLeft = new CANSparkMax(0, MotorType.kBrushless);
+    backLeft = new CANSparkMax(1, MotorType.kBrushless);
+    frontRight = new CANSparkMax(2, MotorType.kBrushless);
     backRight = new CANSparkMax(3, MotorType.kBrushless);
-    //  relEnc = frontLeft.getEncoder();
-    //  shiftSol = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
+    relEnc = frontLeft.getEncoder();
+    shiftSol = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
     
     driveObj = new Drive(frontLeft, backLeft, frontRight, backRight);
-    //  shifterObj = new Shifter(shiftSol);
-    */
+    shifterObj = new Shifter(shiftSol);
+    
     ///////////////////////////////////////////////////////////
     //                         HANG                          //
     ///////////////////////////////////////////////////////////
-    /*
+
     elevMotor = new WPI_TalonFX(0);
+    elevEnc = new TalonFXSensorCollection(elevMotor);
     pivotMotor = new WPI_TalonSRX(0);
     pivotEnc = new TalonEncoder(pivotMotor);
     upperLSwitch = new DigitalInput(0);
@@ -191,48 +176,42 @@ public class Robot extends TimedRobot {
     frontLSwitch = new DigitalInput(2);
     backLSwitch = new DigitalInput(3);
     gyro = new AHRS(SPI.Port.kMXP);
-    
-    hangObj = new Hang(elevMotor, upperLSwitch, bottomLSwitch, elevEnc, pivotMotor, pivotEnc, gyro, frontLSwitch, backLSwitch);
-    */
+
+    hangPivotObj = new HangPivot(pivotMotor, pivotEnc, gyro, frontLSwitch, backLSwitch);
+    hangElevObj = new HangElevator(elevMotor, upperLSwitch, bottomLSwitch, elevEnc);
+    hangObj = new Hang(hangPivotObj, hangElevObj);
+
     ///////////////////////////////////////////////////////////
     //                         INTAKE                        //
     ///////////////////////////////////////////////////////////
-    
-    intakeMotor = new WPI_TalonSRX(8);
-    holdLSwitch = new DigitalInput(0);
+
+    intakeMotor = new WPI_TalonSRX(1);
+    holdLSwitch = new DigitalInput(2);
 
     intakeObj = new Intake(intakeMotor, holdLSwitch);
-    
+
     ///////////////////////////////////////////////////////////
     //                         SHOOTER                       //
     ///////////////////////////////////////////////////////////
-    /*
+
     shooterMotor = new WPI_TalonFX(1);
 
     limelightObj = new Limelight();
-    shooterObj = new Shooter(limelightObj, shooterMotor, intakeObj);
-    */
-    ///////////////////////////////////////////////////////////
-    //                         CAMERA                        //
-    ///////////////////////////////////////////////////////////
-    /*
-    wideFieldCamera = new Camera(0);
-    intakeCamera = new Camera(1);
-    hangCamera = new Camera(2);
-    */
+    shooterObj = new Shooter(limelightObj, shooterMotor, driveObj);
+    
     ///////////////////////////////////////////////////////////
     //                         JOYSTICKS                     //
     ///////////////////////////////////////////////////////////
 
-    //  baseJoy = new Joystick(0);
+    baseJoy = new Joystick(0);
     //  baseTwoJoy = new Joystick(1);
-    //  mechJoy = new Joystick(1);
+    mechJoy = new Joystick(1);
 
     ///////////////////////////////////////////////////////////
     //                         AUTONOMOUS                    //
     ///////////////////////////////////////////////////////////
 
-    //  autonObj = new Autonomous();
+    autonObj = new Autonomous(driveObj, shooterObj, intakeObj, relEnc, gyro);
     
   }
 
@@ -266,7 +245,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    //  autonObj.run();
+    autonObj.run();
   }
 
   /** This function is called once when teleop is enabled. */
@@ -278,106 +257,95 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-  SmartDashboard.putNumber("VOLTAGE", lineTrack.getVoltage());
+
     ///////////////////////////////////////////////////////////
     //                        DRIVE                          //
     ///////////////////////////////////////////////////////////
 
-    //  driveObj.arcadeDrive(baseJoy.getY(), baseJoy.getX());
+    driveObj.arcadeDrive(baseJoy.getY(), baseJoy.getX());
     //  driveObj.tankDrive(baseJoy.getY(), baseTwoJoy.getY());
 
     ///////////////////////////////////////////////////////////
     //                        SHIFTER                        //
     ///////////////////////////////////////////////////////////
-    /*
+
     if(baseJoy.getRawButton(1)){
       shifterObj.setPower();
     }
     else if(baseJoy.getRawButton(2)){
       shifterObj.setSpeed();
     }
-    */
+    
     ///////////////////////////////////////////////////////////
     //                        HANG                           //
     ///////////////////////////////////////////////////////////
-    /*
+
     if(mechJoy.getRawButton(0)){
-      hangObj.setPivotInward();
+      hangObj.setMidHang();
     }
 
     else if(mechJoy.getRawButton(1)){
-      hangObj.setPivotOutward();
+      hangObj.setHighHang();
     }
 
     else if(mechJoy.getRawButton(2)){
-      hangObj.setElevatorExtend();
+      hangObj.setPivotManual();
     }
 
     else if(mechJoy.getRawButton(3)){
-      hangObj.setElevatorRetract();
+      hangObj.setElevatorManual();
     }
 
     else{
-      hangObj.setElevatorStop();
+      hangObj.setNothing();
     }
-    */
+
     ///////////////////////////////////////////////////////////
     //                        INTAKE                         //
     ///////////////////////////////////////////////////////////
-    /*
-    if(baseJoy.getRawButton(4)){
-      intakeObj.setTestingMode();
-      intakeObj.intake(-0.4);
+
+    if(mechJoy.getRawButton(4)){
+      intakeObj.setIntakeMode();
     }
     
-    else if(baseJoy.getRawButton(5)){
+    else if(mechJoy.getRawButton(5)){
       intakeObj.setOutakeMode();
     }
 
     else if(mechJoy.getRawButton(6)){
       intakeObj.setFeedingMode();
     }
-  
     else{
       intakeObj.setStopMode();
     }
-    */
+
     ///////////////////////////////////////////////////////////
     //                         SHOOTER                       //
     ///////////////////////////////////////////////////////////
-    /*
-    if(baseJoy.getRawButton(7)){
-      shooterObj.setTesting();
-      shooterObj.setSpeedManual(0.4);
-    }
-
-    else if(mechJoy.getRawButton(8)){
-      shooterObj.setAutoShoot();
+    
+    if(mechJoy.getRawButton(7)){
+      shooterObj.setLowHubShoot();
     }
     
+    else if(mechJoy.getRawButton(8)){
+      shooterObj.setUpperHubShoot();
+    }
 
     else if(mechJoy.getRawButton(9)){
       shooterObj.setLaunchPadShoot();
     }
-    */
-    /*
+
     else{
       shooterObj.setStop();
     }
-    */
+    
     ///////////////////////////////////////////////////////////
     //                         RUN                           //
     ///////////////////////////////////////////////////////////
 
-    //  hangObj.run();
-    /*
-    intakeObj.displayMethod();
-    shooterObj.displayValues();
-    */
-    intakeObj.displayMethod();
+    hangObj.run();
     intakeObj.run();
-    //shooterObj.run();
-    
+    shooterObj.run();
   }
 
   /** This function is called once when the robot is disabled. */
@@ -395,7 +363,7 @@ public class Robot extends TimedRobot {
     ///////////////////////////////////////////////////////////
 
     /* ! WARNING !: AUTONOMOUS ROUTINES HAVE YET TO BE MADE */
-    /*
+
     if(baseJoy.getRawButton(1)){  
       SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 1");
     }
@@ -427,7 +395,6 @@ public class Robot extends TimedRobot {
     else{
       SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 8");
     }
-    */
   }
 
   /** This function is called once when test mode is enabled. */

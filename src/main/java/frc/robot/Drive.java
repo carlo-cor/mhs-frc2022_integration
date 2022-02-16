@@ -1,5 +1,4 @@
 package frc.robot;
-
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -24,10 +23,18 @@ public class Drive {
     }
 
     public void arcadeDrive(double dSpeed, double dRotation) {
-        differentialDrive.arcadeDrive(deadzone(dSpeed), deadzone(-dRotation)); 
+        differentialDrive.arcadeDrive(-deadzone(dSpeed), deadzone(dRotation)); 
+    }
+
+    public void arcadeRun(double dSpeed, double dRotation){
+        differentialDrive.arcadeDrive(dSpeed, dRotation);
     }
 
     public void tankDrive(double dLeftSpeed, double dRightSpeed) {
         differentialDrive.tankDrive(deadzone(dLeftSpeed), deadzone(-dRightSpeed)); 
+    }
+
+    public void tankRun(double dLeftSpeed, double dRightSpeed){
+        differentialDrive.tankDrive(dLeftSpeed, -dRightSpeed);
     }
 }

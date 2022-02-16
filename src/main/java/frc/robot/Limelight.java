@@ -5,7 +5,6 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Limelight {
-    
     private NetworkTable limelight;
     private NetworkTableEntry camModeEntry;
     private NetworkTableEntry ledModeEntry;
