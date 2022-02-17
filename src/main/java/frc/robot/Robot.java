@@ -40,8 +40,6 @@ public class Robot extends TimedRobot {
   |  LEFT DRIVE | 2 NEO MOTORS: * PORT NEEDED *
   |  RIGHT DRIVE | 2 NEO MOTORS: * PORT NEEDED *
   |  
-  |  NOTE: MAY NOT BE IMPLEMENTED
-  |  SHIFTER | DOUBLESOLENOID: * CHANNEL PORTS NEEDED *
   |
   */
 
@@ -50,10 +48,8 @@ public class Robot extends TimedRobot {
   private CANSparkMax frontRight;
   private CANSparkMax backRight;
   private RelativeEncoder relEnc;
-  private DoubleSolenoid shiftSol;
 
   private Drive driveObj;
-  private Shifter shifterObj;
 
   ///////////////////////////////////////////////////////////
   //                         HANG                          //
@@ -158,10 +154,8 @@ public class Robot extends TimedRobot {
     frontRight = new CANSparkMax(2, MotorType.kBrushless);
     backRight = new CANSparkMax(3, MotorType.kBrushless);
     relEnc = frontLeft.getEncoder();
-    shiftSol = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
     
     driveObj = new Drive(frontLeft, backLeft, frontRight, backRight);
-    shifterObj = new Shifter(shiftSol);
     
     ///////////////////////////////////////////////////////////
     //                         HANG                          //
@@ -257,145 +251,179 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    if(mechJoy.getRawAxis(3) < 0){
+      SmartDashboard.putString("MODE: ", "TESTING");
+      if(mechJoy.getRawButton(1)){
+        intakeObj.setTestingMode();
+        intakeObj.intake(mechJoy.getY());
+      }
+      else{
+        intakeObj.setStopMode();
+      }
 
-    ///////////////////////////////////////////////////////////
-    //                        DRIVE                          //
-    ///////////////////////////////////////////////////////////
+      if(mechJoy.getRawButton(3)){
+        hangElevObj.setElevatorTest();
+        hangElevObj.manualElev(mechJoy.getY());
+      }
+      else{
+        hangElevObj.setElevatorStop();
+      }
 
-    driveObj.arcadeDrive(baseJoy.getY(), baseJoy.getX());
-    //  driveObj.tankDrive(baseJoy.getY(), baseTwoJoy.getY());
+      if(mechJoy.getRawButton(4)){
+        hangPivotObj.setTesting();
+        hangPivotObj.manualPivot(mechJoy.getY());
+      }
+      else{
+        hangPivotObj.setStop();
+      }
 
-    ///////////////////////////////////////////////////////////
-    //                        SHIFTER                        //
-    ///////////////////////////////////////////////////////////
+      if(mechJoy.getRawButton(5)){
+        shooterObj.setTesting();
+        shooterObj.setSpeedManual(mechJoy.getY());
+      }
+      else{
+        shooterObj.setStop();
+      }
 
-    if(baseJoy.getRawButton(1)){
-      shifterObj.setPower();
-    }
-    else if(baseJoy.getRawButton(2)){
-      shifterObj.setSpeed();
-    }
-    
-    ///////////////////////////////////////////////////////////
-    //                        HANG                           //
-    ///////////////////////////////////////////////////////////
+      intakeObj.displayMethod();
+      shooterObj.displayValues();
 
-    if(mechJoy.getRawButton(0)){
-      hangObj.setMidHang();
-    }
-
-    else if(mechJoy.getRawButton(1)){
-      hangObj.setHighHang();
-    }
-
-    else if(mechJoy.getRawButton(2)){
-      hangObj.setPivotManual();
-    }
-
-    else if(mechJoy.getRawButton(3)){
-      hangObj.setElevatorManual();
-    }
-
-    else{
-      hangObj.setNothing();
-    }
-
-    ///////////////////////////////////////////////////////////
-    //                        INTAKE                         //
-    ///////////////////////////////////////////////////////////
-
-    if(mechJoy.getRawButton(4)){
-      intakeObj.setIntakeMode();
-    }
-    
-    else if(mechJoy.getRawButton(5)){
-      intakeObj.setOutakeMode();
+      hangElevObj.run();
+      hangPivotObj.run();
+      intakeObj.run();
+      shooterObj.run();
     }
 
-    else if(mechJoy.getRawButton(6)){
-      intakeObj.setFeedingMode();
-    }
-    else{
-      intakeObj.setStopMode();
-    }
+    else if(mechJoy.getRawAxis(3) > 0){
+      SmartDashboard.putString("MODE: ", "HYPE");
+      ///////////////////////////////////////////////////////////
+      //                        DRIVE                          //
+      ///////////////////////////////////////////////////////////
+      driveObj.arcadeDrive(baseJoy.getY(), baseJoy.getX());
+      //  driveObj.tankDrive(baseJoy.getY(), baseTwoJoy.getY());
+      
+      ///////////////////////////////////////////////////////////
+      //                        HANG                           //
+      ///////////////////////////////////////////////////////////
 
-    ///////////////////////////////////////////////////////////
-    //                         SHOOTER                       //
-    ///////////////////////////////////////////////////////////
-    
-    if(mechJoy.getRawButton(7)){
-      shooterObj.setLowHubShoot();
-    }
-    
-    else if(mechJoy.getRawButton(8)){
-      shooterObj.setUpperHubShoot();
-    }
+      if(mechJoy.getRawButton(0)){
+        hangObj.setMidHang();
+      }
 
-    else if(mechJoy.getRawButton(9)){
-      shooterObj.setLaunchPadShoot();
-    }
+      else if(mechJoy.getRawButton(1)){   //THERE SHOULD BE A SETHIGHHANGGRAB
+        hangObj.setHighHang();
+      }
 
-    else{
-      shooterObj.setStop();
-    }
-    
-    ///////////////////////////////////////////////////////////
-    //                         RUN                           //
-    ///////////////////////////////////////////////////////////
+      else if(mechJoy.getRawButton(2)){
+        hangObj.setPivotManual();
+      }
 
-    hangObj.run();
-    intakeObj.run();
-    shooterObj.run();
-  }
+      else if(mechJoy.getRawButton(3)){
+        hangObj.setElevatorManual();
+      }
 
-  /** This function is called once when the robot is disabled. */
-  @Override
-  public void disabledInit() {
+      else{
+        hangObj.setNothing();
+      }
 
-  }
+      ///////////////////////////////////////////////////////////
+      //                        INTAKE                         //
+      ///////////////////////////////////////////////////////////
 
-  /** This function is called periodically when disabled. */
-  @Override
-  public void disabledPeriodic() {
+      if(mechJoy.getRawButton(4)){
+        intakeObj.setIntakeMode();
+      }
+      
+      else if(mechJoy.getRawButton(5)){
+        intakeObj.setOutakeMode();
+      }
 
-    ///////////////////////////////////////////////////////////
-    //                         AUTONOMOUS                    //
-    ///////////////////////////////////////////////////////////
+      else if(mechJoy.getRawButton(6)){
+        intakeObj.setFeedingMode();
+      }
+      else{
+        intakeObj.setStopMode();
+      }
 
-    /* ! WARNING !: AUTONOMOUS ROUTINES HAVE YET TO BE MADE */
+      ///////////////////////////////////////////////////////////
+      //                         SHOOTER                       //
+      ///////////////////////////////////////////////////////////
+      
+      if(mechJoy.getRawButton(7)){
+        shooterObj.setLowHubShoot();
+      }
+      
+      else if(mechJoy.getRawButton(8)){
+        shooterObj.setUpperHubShoot();
+      }
 
-    if(baseJoy.getRawButton(1)){  
-      SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 1");
-    }
+      else if(mechJoy.getRawButton(9)){
+        shooterObj.setLaunchPadShoot();
+      }
 
-    else if(baseJoy.getRawButton(7)){
-      SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 2");
-    }
+      else{
+        shooterObj.setStop();
+      }
+      
+      ///////////////////////////////////////////////////////////
+      //                         RUN                           //
+      ///////////////////////////////////////////////////////////
 
-    else if(baseJoy.getRawButton(8)){
-      SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 3");
-    }
-
-    else if(baseJoy.getRawButton(9)){
-      SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 4");
-    }
-
-    else if(baseJoy.getRawButton(10)){
-      SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 5");
-    }
-
-    else if(baseJoy.getRawButton(11)){
-      SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 6");
-    }
-
-    else if(baseJoy.getRawButton(12)){
-      SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 7");
-    }
-
-    else{
-      SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 8");
+      hangObj.run();
+      intakeObj.run();
+      shooterObj.run();
     }
   }
+
+    /** This function is called once when the robot is disabled. */
+    @Override
+    public void disabledInit() {
+
+    }
+
+    /** This function is called periodically when disabled. */
+    @Override
+    public void disabledPeriodic() {
+
+      ///////////////////////////////////////////////////////////
+      //                         AUTONOMOUS                    //
+      ///////////////////////////////////////////////////////////
+
+      /* ! WARNING !: AUTONOMOUS ROUTINES HAVE YET TO BE MADE */
+
+      if(baseJoy.getRawButton(1)){  
+        SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 1");
+        autonObj.setOneBall();
+      }
+
+      else if(baseJoy.getRawButton(7)){
+        SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 2");
+      }
+
+      else if(baseJoy.getRawButton(8)){
+        SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 3");
+      }
+
+      else if(baseJoy.getRawButton(9)){
+        SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 4");
+      }
+
+      else if(baseJoy.getRawButton(10)){
+        SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 5");
+      }
+
+      else if(baseJoy.getRawButton(11)){
+        SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 6");
+      }
+
+      else if(baseJoy.getRawButton(12)){
+        SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 7");
+      }
+
+      else{
+        SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 8");
+      }
+    }
 
   /** This function is called once when test mode is enabled. */
   @Override
