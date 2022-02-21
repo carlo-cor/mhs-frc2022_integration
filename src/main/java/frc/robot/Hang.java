@@ -122,7 +122,7 @@ public class Hang {
                 elevator.setElevatorStop();
                 setUpMidCount++; 
             } else {
-                if (!elevator.aboveTopEncoderLimit()) {                                      //else if top encoder isnt reached, extend at normal rate
+                if (!elevator.aboveTopEncoderLimitReached()) {                                      //else if top encoder isnt reached, extend at normal rate
                     elevator.setElevatorExtend();
                 } else {
                     elevator.setElevatorExtendSlow();                                         // else extend slow
@@ -147,7 +147,7 @@ public class Hang {
                 setUpMidCount++;                                           // stop
             } 
             else {
-                if(!elevator.belowBottomEncoderLimit()) {                                    // else if close to bottom limit 
+                if(!elevator.belowBottomEncoderLimitReached()) {                                    // else if close to bottom limit 
                     elevator.setElevatorRetract();                                  // retract at normal speed
                 } else {
                     elevator.setElevatorRetractSlow();                                      // else retract slowly 
@@ -169,7 +169,7 @@ public class Hang {
             //QUESTIONABLE IF THE DRIVERS WANT IT, BUT WE HAVE TO TALK WITH THEM :)
             case 6:
             // elevator extends (to secure pivot hook)
-            if(!elevator.belowBottomEncoderLimit()){             //if elevator reaches small enc limit, stop
+            if(!elevator.belowBottomEncoderLimitReached()){             //if elevator reaches small enc limit, stop
                 elevator.setElevatorStop();
                 setUpMidCount++;
             }
@@ -188,7 +188,7 @@ public class Hang {
         switch(setUpHighCount){
             case 0: 
             // extend elevator (to a certain encoder extent)
-            if (elevator.aboveTopEncoderLimit()) {  //VALUE SUBJECT TO CHANGE    // if top limit or small encoder limit isn't reached 
+            if (elevator.aboveTopEncoderLimitReached()) {  //VALUE SUBJECT TO CHANGE    // if top limit or small encoder limit isn't reached 
                 elevator.setElevatorStop(); 
                 setUpHighCount++;                                            // extend at a normal speed 
             } else {
@@ -214,7 +214,7 @@ public class Hang {
                 setUpHighCount++; 
             } 
             else {
-                if(!elevator.aboveTopEncoderLimit()){                                      // else if close to top limit 
+                if(!elevator.aboveTopEncoderLimitReached()){                                      // else if close to top limit 
                     elevator.setElevatorExtendSlow();                                 // extend slowly 
                 }
                 else{ 
@@ -255,7 +255,7 @@ public class Hang {
                 pivot.setPivOutward();                                              //pivot outward 
             }
             else if(!elevator.bottomLimitTouched()){                                 
-                if(!elevator.belowBottomEncoderLimit()){                             //else if bottom limit isn't touched and bottom enc limit isn't reached
+                if(!elevator.belowBottomEncoderLimitReached()){                             //else if bottom limit isn't touched and bottom enc limit isn't reached
                     elevator.setElevatorRetract();                                  //retract elevator at normal speed
                 }
                 else{                                                               //else if bottom limit isn't touched and bottom enc limit is reached
@@ -289,7 +289,7 @@ public class Hang {
             break;
 
             case 5:     //WOAH WOAH WOAH
-            if(!elevator.belowBottomEncoderLimit()){    //if top enc limit(small extend limit) is reached
+            if(!elevator.belowBottomEncoderLimitReached()){    //if top enc limit(small extend limit) is reached
                 elevator.setElevatorStop();           //stop elevator
                 setUpHighGrabCount++;
             }
@@ -369,8 +369,8 @@ public class Hang {
         SmartDashboard.putNumber("HIGH HANG GRAB COUNTER", setUpHighGrabCount);
         SmartDashboard.putString("HANG STATE", hangMode.toString());
         SmartDashboard.putNumber("TIMER", timer.get()); 
-        SmartDashboard.putBoolean("BELOW BOTTOM ENCODER:", elevator.belowBottomEncoderLimit());
-        SmartDashboard.putBoolean("ABOVE TOP ENCODER:", elevator.aboveTopEncoderLimit());
+        SmartDashboard.putBoolean("BELOW BOTTOM ENCODER:", elevator.belowBottomEncoderLimitReached());
+        SmartDashboard.putBoolean("ABOVE TOP ENCODER:", elevator.aboveTopEncoderLimitReached());
 
         switch(hangMode){
             case MIDHANG:

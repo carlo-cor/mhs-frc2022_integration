@@ -1,13 +1,9 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
-
-import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.kauailabs.navx.frc.AHRS;
-import edu.wpi.first.wpilibj.Timer;
 
 public class HangPivot {
     
@@ -17,11 +13,9 @@ public class HangPivot {
     //                                         //
     /////////////////////////////////////////////
 
-    //  MOTOR (775) & VERSA-PLANETARY ENCODER  //
-    //private MotorController hangPivot;
-    //private MotorController hangPivotTwo;   //OLD ROBOT TEST
-    private MotorControllerGroup hangPivot;
-    private RelativeEncoder pivotEncoder;       
+    //775 MOTOR
+    private MotorController hangPivot; 
+    private TalonEncoder pivotEncoder;       
 
     //  LIMIT SWITCHES  //
     private DigitalInput frontSwitch;   
@@ -31,12 +25,12 @@ public class HangPivot {
     private AHRS navX;
 
     //  VARIABLES [SUBJECT TO CHANGE]  //
-    private final double inwardPivotPos = 60.0;      
-    private final double outwardPivotPos = 100.0;
-    private final double midPivotPos = 80.0; 
-    private final double inwardPivotSpeed = 0.20;
-    private final double outwardPivotSpeed = -0.20;
-    private final double grabbingHighPivotPos = 1400.0; 
+    private final double inwardPivotPos = 150.0;      
+    private final double outwardPivotPos = 200.0;
+    private final double midPivotPos = 175.0; 
+    private final double inwardPivotSpeed = 0.25;
+    private final double outwardPivotSpeed = -0.25;
+    //private final double grabbingHighPivotPos = 1400.0; 
 
     
     /////////////////////////////////////////////
@@ -45,10 +39,8 @@ public class HangPivot {
     //                                         //
     /////////////////////////////////////////////
     
-    public HangPivot (MotorController pivotMotor, MotorController pivotMotorTwo, RelativeEncoder hangPivotEncoder, AHRS gyro, DigitalInput frontLimitSwitch, DigitalInput backLimitSwitch){  
-        //hangPivot = pivotMotor;
-        //hangPivotTwo = pivotMotorTwo;
-        hangPivot = new MotorControllerGroup(pivotMotor, pivotMotorTwo);
+    public HangPivot (MotorController pivotMotor, TalonEncoder hangPivotEncoder, AHRS gyro, DigitalInput frontLimitSwitch, DigitalInput backLimitSwitch){  
+        hangPivot = pivotMotor;
         pivotEncoder = hangPivotEncoder;
         frontSwitch = frontLimitSwitch;
         backSwitch = backLimitSwitch;
@@ -99,19 +91,19 @@ public class HangPivot {
     }
 
     public boolean outwardEncReached(){      //RETURNS TRUE IF POSITION IS GREATER THAN PIVOT
-        return Math.abs(pivotEncoder.getPosition()) > outwardPivotPos;
+        return Math.abs(pivotEncoder.get()) > outwardPivotPos;
     }
 
     public boolean inwardEncReached(){       //RETURNS TRUE IF POSITION IS LESS THAN PIVOT
-        return Math.abs(pivotEncoder.getPosition()) < inwardPivotPos;
+        return Math.abs(pivotEncoder.get()) < inwardPivotPos;
     }
-
-    public boolean isGrabbingHigh(){      //CHECKS IF PIVOT ENCODER REACHED HIGH BAR
-        return pivotEncoder.getPosition() < grabbingHighPivotPos; 
+/*
+    public boolean grabbingHigh(){      //CHECKS IF PIVOT ENCODER REACHED HIGH BAR
+        return pivotEncoder.get() < grabbingHighPivotPos; 
     }
-
+*/
     public boolean middleEncReached() {     //CHECKS IF PIVOT IS PERPENDICULAR TO FLOOR
-        return Math.abs(pivotEncoder.getPosition()) < midPivotPos; 
+        return pivotEncoder.get() < midPivotPos; 
     }
 
     /////////////////////////////////////////////
@@ -121,7 +113,7 @@ public class HangPivot {
     /////////////////////////////////////////////
 
     public void resetEnc(){     //RESETS ENCODERS FOR THE PIVOT MOTOR
-        pivotEncoder.setPosition(0);
+        pivotEncoder.reset();
     }
 
     public void pivotOutwardLim(){    //PIVOTS OUTWARD FOR A CERTAIN AMOUNT OF ENCODER COUNTS [INWARD = TOWARDS ROBOT BASE, OUTWARD = TOWARDS ROBOT PERIMETER]
@@ -187,10 +179,9 @@ public class HangPivot {
 
         SmartDashboard.putNumber("MOTOR SPEED", hangPivot.get());
         SmartDashboard.putString("HANG PIVOT STATE", pivotState.toString());
-        SmartDashboard.putBoolean(" PIVOT BACK LIMIT", backSwitch.get());
-        SmartDashboard.putBoolean("PIVOT FRONT LIMIT", frontSwitch.get());
-        SmartDashboard.putBoolean("PIVOT MID LIMIT", middleEncReached()); 
-        SmartDashboard.putNumber("PIVOT ENCODER", pivotEncoder.getPosition());
+        SmartDashboard.putBoolean("BACK LIMIT", backSwitch.get());
+        SmartDashboard.putBoolean("FRONT LIMIT", frontSwitch.get());
+        SmartDashboard.putNumber("PIVOT ENCODER", pivotEncoder.get());
         SmartDashboard.putNumber("NAVX PITCH", navX.getPitch());
 
         switch(pivotState){

@@ -80,122 +80,138 @@ public class Autonomous {
 
     private void oneBall(){
         switch(oneBallCounter){
-            case 0:     //rev shooter
-                if(/*shooter.checkIfRPMWithinRange()*/true){
-                    shooter.setSpeedManual(-0.4);
-                    oneBallCounter++;
-                }
-                else{
-                    //shooter.setUpperHubShoot();
-                }
-            break;
 
-            case 1:     //shoot ball if rpm is within range
-                if(/*!intake.cargoCheck()*/true){
-                    intake.setFeedingMode();
-                    //shooter.setStop();
-                    //intake.setStopMode();
-                    oneBallCounter++;
-                }
-
-                else{
-                    //intake.setFeedingMode();
-                }
-            break;
-
-            case 2:     //Taxi off the tarmac
-                if(Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(4)){
+            case 0:     //taxi off tarmac
+                if(Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(3.33333)){
                     drive.tankRun(0, 0);
-                    shooter.setSpeedManual(0);
+                    encoder.setPosition(0);
+                    oneBallCounter++;
+                }
+                else{
+                    drive.tankRun(-0.5, -0.47);
+                }
+            break;
+
+            case 1:     //rev shooter
+                if(shooter.checkRPM()){
+                    oneBallCounter++;
+                }
+                else{
+                    shooter.setUpperHubShoot();
+                }
+            break;
+
+            case 2:     //shoot ball if rpm is within range
+                if(intake.cargoCheck()){
+                    shooter.setStop();
                     intake.setStopMode();
                     oneBallCounter++;
                 }
+
                 else{
-                    drive.tankRun(0.4, -0.37);
+                    intake.setFeedingMode();
                 }
+            break;
+
         }
     }
 
     private void twoBall(){
         switch(twoBallCounter){
-            case 0:     //rev the shooter                         
-                if(/*shooter.checkIfRPMWithinRange()*/true){
-                    shooter.setSpeedManual(-0.4);
+
+            case 0:     //taxi off tarmac
+                if(Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(6)){
+                    drive.tankRun(0, 0);
+                    encoder.setPosition(0);
                     twoBallCounter++;
                 }
                 else{
-                    //shooter.setUpperHubShoot();
+                    drive.tankRun(-0.45, -0.42);
+                }
+            break;
+
+            case 1:     //rev the shooter                         
+                if(shooter.checkRPM()){
+                    twoBallCounter++;
+                }
+                else{
+                    shooter.setUpperHubShoot();
                 }      
             break;
-
-            case 1:     //shoot the ball
-                if(/*!intake.cargoCheck()*/true){
-                    intake.setFeedingMode();
-                    //shooter.setStop();
-                    //intake.setStopMode();
+                
+            case 2:     //shoot the ball
+                if(intake.cargoCheck()){
+                    shooter.setStop();
+                    intake.setStopMode();
                     twoBallCounter++;
                 }
                 else{
-                    //intake.setFeedingMode();
+                    intake.setFeedingMode();
                 }
-
             break;
             
-            case 2:     //turn around to face the cargo ball
-                if(gyro.getYaw() > 160.0f && gyro.getYaw() < 200.0f ){
+            case 3:     //turn to face the cargo ball
+                if(gyro.getYaw() > 35f && gyro.getYaw() < 45f ){
+                    drive.tankRun(0, 0);   
                     encoder.setPosition(0);
-                    drive.tankRun(0, 0);
-                    shooter.setSpeedManual(0);
-                    intake.setStopMode();   
                     twoBallCounter++;
                 }
                 else{
-                    drive.tankRun(0.6, 0.57);
+                    drive.tankRun(0.55, -0.52);
                 }
             break;
 
-            case 3:     //intake the ball
-                if(/*intake.cargoCheck()*/ Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(4)){
+            case 4:     //intake the ball
+                if(!intake.cargoCheck()){
                     drive.tankRun(0, 0);
                     intake.setStopMode();
                     twoBallCounter++;
                 }
                 else{
-                    //intake.setIntakeMode();
-                    intake.setFeedingMode();
-                    drive.tankRun(-0.4, 0.37);
+                    intake.setIntakeMode();
+                    drive.tankRun(0.4, 0.37);
                 }
             break;
 
-            case 4:     //turn back to face the upper hub
-                if(gyro.getYaw() < 10 && gyro.getYaw() > -10){
+            case 5:     //back up to initial position
+                if(encoder.getPosition() <= 1 && encoder.getPosition() >= -1){
                     drive.tankRun(0, 0);
+                    encoder.setPosition(0);
                     twoBallCounter++;
                 }
                 else{
-                    drive.tankRun(0.6, 0.57);
+                    drive.tankRun(-0.5, -0.47);
+                }
+            break;
+
+            case 6:     //turn back to face the upper hub
+                if(gyro.getYaw() < 5 && gyro.getYaw() > -5){
+                    drive.tankRun(0, 0);
+                    encoder.setPosition(0);
+                    twoBallCounter++;
+                }
+                else{
+                    drive.tankRun(-0.6, 0.57);
                 }
             break; 
 
-            case 5:     //rev the shooter
-                if(/*shooter.checkIfRPMWithinRange()*/true){
-                    shooter.setSpeedManual(-0.4);
+            case 7:     //rev the shooter
+                if(shooter.checkRPM()){
                     twoBallCounter++;
                 }
                 else{
-                    //shooter.setUpperHubShoot();
+                    shooter.setUpperHubShoot();
                 }
             break;
 
-            case 6:     //shoot the ball
-                if(/*intake.cargoCheck()*/true){
-                    intake.setFeedingMode();
-                    //shooter.setStop();
-                    //intake.setStopMode();
+            case 8:     //shoot the ball
+                if(intake.cargoCheck()){
+                    shooter.setStop();
+                    intake.setStopMode();
                     twoBallCounter++;
                 }
                 else{
-                    //intake.setFeedingMode();
+                    intake.setFeedingMode();
                 }
             break;
         }
@@ -229,7 +245,7 @@ public class Autonomous {
 
         }
 
-        //shooter.run();
+        shooter.run();
         intake.run();
     }
 }

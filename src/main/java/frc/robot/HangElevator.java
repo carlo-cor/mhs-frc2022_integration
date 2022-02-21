@@ -12,10 +12,9 @@ public class HangElevator{
    
     //MOTORS
     private MotorController elevatorMotor;
-    //775 pro 
 
     //ENCODERS
-    private TalonEncoder elevatorEncoder;
+    private TalonFXSensorCollection elevatorEncoder;
 
     //SENSORS
     private DigitalInput limitTop;          //4000                    
@@ -24,15 +23,14 @@ public class HangElevator{
     //VALUES
     private double closeTopLimit = 0.50* 2094;                  //close to top limit switch enc. value         
     private double closeBotLimit = 600;                         //close to bottom limit switch enc. value
-    private double pivotableEnc = 1600;                           //encoder that needs to be reached for the pivot to come off previous rung
     private double extendSpeed = 0.40;                          //counter-clockwise to extend (-speed)
-    private double slowExtendSpeed = 0.3;
+    private double slowExtendSpeed = 0.30;
     private double retractSpeed = -0.40;                         //clockwise to retract (+speed)
-    private double slowRetractSpeed = -0.3;
-    
+    private double slowRetractSpeed = -0.30;
+    private double pivotableEnc = 1600; 
 
     //CONSTRUCTOR
-    public HangElevator(MotorController elevMotor, DigitalInput limitSwitchTop, DigitalInput limitSwitchBottom, TalonEncoder elevEncoder){
+    public HangElevator(MotorController elevMotor, DigitalInput limitSwitchTop, DigitalInput limitSwitchBottom, TalonFXSensorCollection elevEncoder){
         elevatorMotor = elevMotor;
         limitTop = limitSwitchTop;
         limitBot = limitSwitchBottom;
@@ -78,16 +76,16 @@ public class HangElevator{
         return !limitBot.get(); 
     }
     
-    public boolean aboveTopEncoderLimit(){                                                //return true if past top encoder check
-        return elevatorEncoder.get() > closeTopLimit;
+    public boolean aboveTopEncoderLimitReached(){                                                //return true if past top encoder check
+        return elevatorEncoder.getIntegratedSensorPosition() > closeTopLimit;
     }
     
-    public boolean belowBottomEncoderLimit(){                                                //return true if past bottom encoder check
-        return elevatorEncoder.get() < closeBotLimit;
+    public boolean belowBottomEncoderLimitReached(){                                                //return true if past bottom encoder check
+        return elevatorEncoder.getIntegratedSensorPosition() < closeBotLimit;
     }
 
-    public boolean pivotableEncoderReached(){                                               //return true if retracted enough for pivot to come off
-        return elevatorEncoder.get() > pivotableEnc;
+    public boolean pivotableEncoderReached(){
+        return elevatorEncoder.getIntegratedSensorPosition() > pivotableEnc; 
     }
 
     //STOP
@@ -121,7 +119,7 @@ public class HangElevator{
     }
 
     public void encoderReset(){                                                             //reset elevator encoder value
-        elevatorEncoder.reset();
+        elevatorEncoder.setIntegratedSensorPosition(0,0);
     }
     
 
@@ -131,7 +129,7 @@ public class HangElevator{
             elevatorMotor.set(0);                                                           //stop extending
         }
         else{
-            if(aboveTopEncoderLimit()){                                                   //not at top limit but close to
+            if(aboveTopEncoderLimitReached()){                                                   //not at top limit but close to
                 elevatorMotor.set(slowExtendSpeed);                                         //extend slow
             }
             else{
@@ -144,10 +142,10 @@ public class HangElevator{
     public void retractToBottomLimit(){
         if(bottomLimitTouched()){                                                           //if at bottom limit
             elevatorMotor.set(0);                                                           //stop retracting
-            elevatorEncoder.reset();                              //reset encoder (bottom limit should be 0 position)
+            elevatorEncoder.setIntegratedSensorPosition(0, 0);                       //reset encoder (bottom limit should be 0 position)
         }
         else{
-            if(belowBottomEncoderLimit()){                                                   //if not at bottom limit but close to
+            if(belowBottomEncoderLimitReached()){                                                   //if not at bottom limit but close to
                 elevatorMotor.set(slowRetractSpeed);
             }
             else{                                                                           //if not at or close to bottom limit
@@ -158,7 +156,7 @@ public class HangElevator{
 
     //RUN
     public void run(){
-        SmartDashboard.putNumber("ElevatorEncoder:", elevatorEncoder.get());
+        SmartDashboard.putNumber("ElevatorEncoder:", elevatorEncoder.getIntegratedSensorPosition());
         SmartDashboard.putBoolean("Elevator Top Limit:", limitTop.get());
         SmartDashboard.putBoolean("Elevator Bottom Limit:", limitBot.get());
         SmartDashboard.putNumber("Elevator Arm Speed:", elevatorMotor.get());
@@ -193,7 +191,6 @@ public class HangElevator{
             stop();
             break;
         }
-        
         
     }
     
