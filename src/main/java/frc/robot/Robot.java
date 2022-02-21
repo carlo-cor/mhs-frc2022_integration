@@ -405,6 +405,7 @@ public class Robot extends TimedRobot {
 
       else if(baseJoy.getRawButton(7)){
         SmartDashboard.putString("AUTONOMOUS: ", "ROUTINE 2");
+        //autonObj.setTwoBall();
       }
 
       else if(baseJoy.getRawButton(8)){
