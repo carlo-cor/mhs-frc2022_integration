@@ -283,7 +283,7 @@ public class Robot extends TimedRobot {
 
       if(mechJoy.getRawButton(5)){
         shooterObj.setTesting();
-        shooterObj.setSpeedManual(mechJoy.getY());
+        shooterObj.setManual(mechJoy.getY());
       }
       else{
         shooterObj.setStop();
@@ -334,15 +334,15 @@ public class Robot extends TimedRobot {
       //                        INTAKE                         //
       ///////////////////////////////////////////////////////////
 
-      if(mechJoy.getRawButton(4)){
+      if(baseJoy.getRawButton(4)){
         intakeObj.setIntakeMode();
       }
       
-      else if(mechJoy.getRawButton(5)){
+      else if(baseJoy.getRawButton(5)){
         intakeObj.setOutakeMode();
       }
 
-      else if(mechJoy.getRawButton(6)){
+      else if(baseJoy.getRawButton(6)){
         intakeObj.setFeedingMode();
       }
       
@@ -354,16 +354,16 @@ public class Robot extends TimedRobot {
       //                         SHOOTER                       //
       ///////////////////////////////////////////////////////////
       
-      if(mechJoy.getRawButton(1)){
+      if(baseJoy.getRawButton(1)){
         shooterObj.setLowHubShoot();
       }
       
       /*
-      else if(mechJoy.getRawButton(8)){
+      else if(baseJoy.getRawButton(8)){
         shooterObj.setUpperHubShoot();
       }
 
-      else if(mechJoy.getRawButton(9)){
+      else if(baseJoy.getRawButton(9)){
         shooterObj.setLaunchPadShoot();
       }
       */
