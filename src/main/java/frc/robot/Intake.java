@@ -6,15 +6,17 @@ import edu.wpi.first.wpilibj.Timer;
 
 public class Intake {
     private MotorController intakeMotor; // the intake motor
-    private DigitalInput holdSwitch; // limit switch
+    private DigitalInput intakeSensor; // beam break sensor
     private double outtakeSpeed = 0.5; // test the speed out
     private double intakeSpeed = 0.7; // the speed of the intake motor
+    private double feedingSpeed = 0.7; // the speed of the motor when feeding
     private Timer timer; //timer for intake
     private double holdDelay = 0.2; // test the delay time
+    
 
-    public Intake(MotorController newIntakeMotor, DigitalInput newHoldSwitch, Timer newTimer){
+    public Intake(MotorController newIntakeMotor, DigitalInput newIntakeSensor, Timer newTimer){
         intakeMotor = newIntakeMotor;
-        holdSwitch = newHoldSwitch;
+        intakeSensor = newIntakeSensor;
         timer = newTimer;
     }
 
@@ -36,8 +38,8 @@ public class Intake {
         mode = state.FEEDING;
     }
 
-    public void setOverrideMode(){
-        mode = state.OVERRIDE;
+    public void setOverrideMode(){ // sets mode to override mode 
+        mode = state.OVERRIDE;     // override intakes without the use of the sensor
     }
 
     public void setTestingMode(){ // sets mode to testing mode
@@ -48,8 +50,8 @@ public class Intake {
         mode = state.STOP;
     }
     
-    public boolean cargoCheck(){ //checks the limit switch if it is being triggered or not
-        return holdSwitch.get();
+    public boolean cargoCheck(){ //checks if the beam is being broken or not
+        return !intakeSensor.get();
     }
 
     public void setIntakeSpeed(double speed){ //method for the motor intaking
@@ -65,7 +67,7 @@ public class Intake {
     }
 
     private void intaking(){ //intakes cargo and holds it when switch is being triggered
-        if (!cargoCheck()){
+        if (cargoCheck()){
             timer.start();
             if (timer.get() > holdDelay){
                 timer.stop();
@@ -83,8 +85,8 @@ public class Intake {
     }
 
     private void feeding(){ // feeds the ball into the shooter
-        if (!cargoCheck()){
-            setIntakeSpeed(intakeSpeed);
+        if (cargoCheck()){
+            setIntakeSpeed(feedingSpeed);
         }
         else{
             stopMotor();
@@ -92,9 +94,9 @@ public class Intake {
     }
 
     public void displayMethod(){
-        SmartDashboard.putBoolean("Limit switch", cargoCheck()); // displays if the limit switch is being triggered
+        SmartDashboard.putBoolean("Intake Sensor", cargoCheck()); // displays if the sensor is being triggered
         SmartDashboard.putString("Mode", mode.toString()); // displays the current state of the intake
-        SmartDashboard.putNumber("Timer", timer.get());
+        SmartDashboard.putNumber("Timer", timer.get()); // displays the time to the timer
     }
 
     public void run(){

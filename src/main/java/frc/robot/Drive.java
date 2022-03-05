@@ -27,7 +27,7 @@ public class Drive {
     }
 
     public void arcadeRun(double dSpeed, double dRotation) {
-        differentialDrive.arcadeDrive(dSpeed, dRotation);
+        differentialDrive.arcadeDrive(-dSpeed, dRotation);
     }
 
     public void tankDrive(double dLeftSpeed, double dRightSpeed) {
@@ -35,6 +35,6 @@ public class Drive {
     }
 
     public void tankRun(double dLeftSpeed, double dRightSpeed) {
-        differentialDrive.tankDrive(dLeftSpeed, dRightSpeed);
+        differentialDrive.tankDrive(-dLeftSpeed, dRightSpeed);
     }
 }

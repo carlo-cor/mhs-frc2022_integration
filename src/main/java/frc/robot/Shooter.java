@@ -16,10 +16,12 @@ public class Shooter{
     private double upperLimit;
     private double lowerLimit;
     private double setSpeed = 0;
+    private double turnSpeed = 0;
+    private double rangeSpeed = 0;
 
     //CONSTANTS (USING TEST VALUES FOR NOW)
     private final double cameraHeight = 1.79166667;             //height of the limelight from the ground
-    private final double targetHeight = 8.66666667;             //height of the target(upper hub)
+    private final double targetHeight = 3.64583333;//8.66666667;             //height of the target(upper hub)
     private final double cameraAngleDegrees = 0;                //angle of the limelight to the horizontal
     
     private final double minimumShootingDistance = 10;           //minimum distance ball has to be to clear the rim
@@ -79,6 +81,10 @@ public class Shooter{
         return getDistance() > minimumShootingDistance && getDistance() < maximumTrackingDistance;
     }
 
+    public boolean checkAligned(){
+        return limelight.getXOffset() < 0.5 && limelight.getXOffset() > -0.5;
+    }
+
     //Displays values and booleans
     public void displayValues(){
         SmartDashboard.putNumber("Distance (ft.)", getDistance());
@@ -87,9 +93,9 @@ public class Shooter{
         SmartDashboard.putNumber("Upper Limit:", upperLimit);
         SmartDashboard.putNumber("Lower Limit:", lowerLimit);
 
-        SmartDashboard.putBoolean("Within Shooting Distance?", checkIfWithinShootingDistance());
+        SmartDashboard.putBoolean("In Range?", checkIfWithinShootingDistance());
+        SmartDashboard.putBoolean("Aligned?", checkAligned());
         SmartDashboard.putBoolean("SHOOT!", checkRPM());
-        
     }
 
     //Calculates the distance from the BUMPER to the CENTER OF THE HUB
@@ -114,46 +120,42 @@ public class Shooter{
 
     //Aligns the robot with the upper hub
     private void align(){
-        double kP = 0;
-        double minCommand = 0;
+        double kP = 0.01;
+        double minCommand = 0.2;
         double error = limelight.getXOffset();
-        double adjustSpeed;
 
         limelight.setTrackingMode();
 
-        if(error > 0){
-            adjustSpeed = (kP * error) + minCommand;
+        if(error > 0.5){
+            turnSpeed = (kP * error) + minCommand;
         }
-        else if(error < 0){
-            adjustSpeed = (kP * error) - minCommand;
+        else if(error < -0.5){
+            turnSpeed = (kP * error) - minCommand;
         }
         else{
-            adjustSpeed = 0;
+            turnSpeed = 0;
         }
-
-        drive.arcadeRun(adjustSpeed, 0);
     }
 
-    //Gets into upper hub shooting range
     private void getInRange(){
 
         limelight.setTrackingMode();
 
-        if(getDistance() < minimumShootingDistance){
-            drive.tankRun(-0.6, -0.6);
+        if(getDistance() < minimumShootingDistance + 1){
+            rangeSpeed = 0.4;
         }
-        else if(getDistance() > maximumTrackingDistance){
-            drive.tankRun(0.6, 0.6);
+        else if(getDistance() > maximumTrackingDistance - 1){
+            rangeSpeed = -0.4;
         }
         else{
-            drive.tankRun(0, 0);
+            rangeSpeed = 0;
         }
     }
+
 
     //stops the shooter
     private void stop(){
         shooterMotor.stopMotor();
-        //limelight.setDrivingMode();
         setSpeed = 0;
         upperLimit = -1;
         lowerLimit = -1;
@@ -170,8 +172,10 @@ public class Shooter{
     //Method to shoot in the upper hub using limelight
     private void upperHubShoot(){ 
         limelight.setTrackingMode();
-        //align();
-        //getInRange();
+
+        align();
+        getInRange();
+        drive.arcadeRun(turnSpeed, rangeSpeed);
 
         if(getDistance() > minimumShootingDistance && getDistance() < 11){
             setSpeed = -0.692;
@@ -220,7 +224,10 @@ public class Shooter{
     //Method to shoot in the upper hub from the launch pad
     private void launchPadShoot(){    
         limelight.setTrackingMode();
-        //align();
+
+        align();
+        drive.arcadeRun(turnSpeed, 0);
+
         setSpeed = launchPadSpeed;  
         upperLimit = 6400;
         lowerLimit = 6200;   
