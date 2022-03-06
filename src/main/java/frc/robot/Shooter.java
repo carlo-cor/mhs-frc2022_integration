@@ -166,7 +166,7 @@ public class Shooter{
         setSpeed = lowHubSpeed; 
         upperLimit = 2600;
         lowerLimit = 2200;
-        shooterMotor.set(setSpeed); 
+        shooterMotor.set(-setSpeed); 
     }
 
     //Method to shoot in the upper hub using limelight

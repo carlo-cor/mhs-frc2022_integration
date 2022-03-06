@@ -30,12 +30,13 @@ public class HangPivot {
     private AHRS navX;
 
     //  VARIABLES [SUBJECT TO CHANGE]  //
-    //MAX IS 6013.0
-    private final double inwardPivotPos = 1500.0;    //VALUE FOR INWARD PIVOT (USED IN HIGH HANG SETUP OF HANG CODE)    
-    private final double outwardPivotPos = 4200.0;   //VALUE FOR OUTWARD PIVOT (USED IN MID HANG SETUP OF HANG CODE)
-    private final double midPivotPos = 3000.0;       //VALUE FOR PERPENDICULAR POSITION (USED TO SECURE PIVOT ON RUNGS)
-    private final double inwardPivotSpeed = -0.10;       
-    private final double outwardPivotSpeed = 0.10;
+    //MAX IS 7124.0
+    private final double inwardPivotPos = 0.20 * 7124.0;    //VALUE FOR INWARD PIVOT (USED IN HIGH HANG SETUP OF HANG CODE)    
+    private final double outwardPivotPos = 0.80 * 7124.0;   //VALUE FOR OUTWARD PIVOT (USED IN MID HANG SETUP OF HANG CODE)            //7097, 7121, 7154
+    private final double midPivotPos = 4027;       //VALUE FOR PERPENDICULAR POSITION (USED TO SECURE PIVOT ON RUNGS)        //OG VALUE: 3959.33
+    private final double inwardPivotSpeed = -0.30;       
+    private final double outwardPivotSpeed = 0.20;
+    private final double unhooked = 1850;
     
     /////////////////////////////////////////////
     //                                         //
@@ -58,11 +59,19 @@ public class HangPivot {
     /////////////////////////////////////////////
 
     private enum States{
-        PIVOTINWARD, PIVOTOUTWARD, PIVOTMID, STOP, TESTING;
+        PIVOTINWARDLIM, PIVOTINWARD, PIVOTOUTWARDLIM, PIVOTOUTWARD, PIVOTMID, STOP, TESTING;
     }
 
     //  SETTING STATES  //
     public States pivotState = States.STOP;
+
+    public void setPivInwardLim(){
+        pivotState = States.PIVOTINWARDLIM;
+    }
+
+    public void setPivOutwardLim(){
+        pivotState = States.PIVOTOUTWARDLIM;
+    }
 
     public void setPivInward(){
         pivotState = States.PIVOTINWARD;
@@ -106,8 +115,23 @@ public class HangPivot {
         return Math.abs(pivotEncoder.get()) < inwardPivotPos;
     }
 
-    public boolean beforeMiddleEnc() {     //RETURNS TRUE IF PIVOT IS PERPENDICULAR TO FLOOR, COMING FROM AN OUTWARD POSITION
-        return pivotEncoder.get() < midPivotPos; 
+    public boolean inMidRange() {     //RETURNS TRUE IF PIVOT IS PERPENDICULAR TO FLOOR, COMING FROM AN OUTWARD POSITION
+        return pivotEncoder.get() > (midPivotPos - 75) && pivotEncoder.get() < (midPivotPos + 75); 
+    }
+
+    public boolean beforeMidRange(){        //RETURNS TRUE IF PIVOT IS BEFORE PARALEEL TO ELEVATOR
+        return pivotEncoder.get() < (midPivotPos - 75);
+    }
+
+    public boolean afterMidRange(){         //RETURNS TRUE IF PIVOT IS AFTER PARALLEL TO ELEVATOR
+        return pivotEncoder.get() > (midPivotPos + 75);
+    }
+
+    public boolean pivotUnhooked(){
+        return pivotEncoder.get() > unhooked && pivotEncoder.get() < midPivotPos;
+    }
+    public double getEncoder(){
+        return pivotEncoder.get();
     }
 
     /////////////////////////////////////////////
@@ -126,7 +150,7 @@ public class HangPivot {
         }
 
         else{
-            if(!beforeMiddleEnc()){
+            if(!inMidRange()){
                 hangPivot.set(inwardPivotSpeed);
             }
 
@@ -198,7 +222,7 @@ public class HangPivot {
 
     public void run(){      //RUN METHOD WITH SMART DASHBOARD DISPLAYS AND STATE SWITCHES
         
-        SmartDashboard.putNumber("MOTOR SPEED", hangPivot.get());
+        SmartDashboard.putNumber("PIVOT SPEED", hangPivot.get());
         SmartDashboard.putString("HANG PIVOT STATE", pivotState.toString());
         SmartDashboard.putBoolean("BACK LIMIT", backSwitch.get());
         SmartDashboard.putBoolean("FRONT LIMIT", frontSwitch.get());
@@ -212,12 +236,20 @@ public class HangPivot {
             testing();
             break;
 
-            case PIVOTOUTWARD:
+            case PIVOTOUTWARDLIM:
             pivotOutwardLim();
             break;
 
-            case PIVOTINWARD:
+            case PIVOTINWARDLIM:
             pivotInwardLim();
+            break;
+
+            case PIVOTOUTWARD:
+            pivotOutward();
+            break;
+
+            case PIVOTINWARD:
+            pivotInward();
             break;
 
             case PIVOTMID:
@@ -230,8 +262,4 @@ public class HangPivot {
 
         }
     }
-
-
-
-
 }

@@ -12,6 +12,7 @@ public class Limelight {
     private NetworkTableEntry xOffsetEntry;
     private NetworkTableEntry yOffseEntry;
 
+    //SETS DEFAULT CONFIG TO NULL
     public Limelight(){
         limelight = null;
         camModeEntry = null;
@@ -21,6 +22,7 @@ public class Limelight {
         yOffseEntry = null;
     }
 
+    //TWO STATES: TRACKING OR DRIVING
     private enum state{
         DRIVING, TRACKING
     }
@@ -35,6 +37,7 @@ public class Limelight {
         cameraState = state.TRACKING;
     }
 
+    //GETS THE LIMELIGHT TABLE ITSELF
     private NetworkTable getLimelight(){
         if(limelight == null){
             limelight = NetworkTableInstance.getDefault().getTable("limelight");
@@ -43,6 +46,7 @@ public class Limelight {
         return limelight;
     }
 
+    //GETS THE CAMERA MODE TABLE ENTRY
     private NetworkTableEntry getCamModeEntry(){
         if(getLimelight() == null){
             camModeEntry = null;
@@ -55,6 +59,7 @@ public class Limelight {
 
     }
 
+    //GETS THE LED MODE TABLE ENTRY
     private NetworkTableEntry getLEDModeEntry(){
         if(getLimelight() == null){
             ledModeEntry = null;
@@ -66,6 +71,7 @@ public class Limelight {
         return ledModeEntry;
     }
 
+    //GETS THE TARGET TABLE ENTRY
     private NetworkTableEntry getTargetEntry(){
         if(getLimelight() == null){
             checkTargetEntry = null;
@@ -77,6 +83,7 @@ public class Limelight {
         return checkTargetEntry;
     }
 
+    //GETS THE tx TABLE ENTRY
     private NetworkTableEntry getXOffsetEntry(){
         if(getLimelight() == null){
             xOffsetEntry = null;
@@ -88,6 +95,7 @@ public class Limelight {
         return xOffsetEntry;
     }
 
+    //GETS THE ty TABLE ENTRY
     private NetworkTableEntry getYOffsetEntry(){
         if(getLimelight() == null){
             yOffseEntry = null;
@@ -99,6 +107,7 @@ public class Limelight {
         return yOffseEntry;
     }
 
+    //sets the camera settings to be in driving mode (turns off LEDs and increases exposure)
     private void drivingMode(){
         if(getCamModeEntry() != null && getLEDModeEntry() != null){
             getCamModeEntry().setDouble(1);
@@ -106,6 +115,7 @@ public class Limelight {
         }
     }
 
+    //sets the camera settings to be in tracking mode (turns on LEDs and decreases exposure)
     private void trackingMode(){
         if(getCamModeEntry() != null && getLEDModeEntry() != null){
             getCamModeEntry().setDouble(0);
@@ -113,14 +123,17 @@ public class Limelight {
         }
     }
 
+    //returns true if a target is seen
     public boolean checkTargetSeen(){
         return getTargetEntry().getDouble(0) == 1;
     }
         
+    //returns how off the target is in the 'x' direction relative to the crosshairs (in degrees)
     public double getXOffset(){
         return getXOffsetEntry().getDouble(0);
     }
 
+    //returns how off the target is in the 'y' direction relative to the crosshairs
     public double getYOffset(){
         return getYOffsetEntry().getDouble(0);
     }

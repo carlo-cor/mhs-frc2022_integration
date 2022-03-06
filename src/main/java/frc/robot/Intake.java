@@ -8,10 +8,10 @@ public class Intake {
     private MotorController intakeMotor; // the intake motor
     private DigitalInput intakeSensor; // beam break sensor
     private double outtakeSpeed = 0.5; // test the speed out
-    private double intakeSpeed = 0.7; // the speed of the intake motor
+    private double intakeSpeed = 1; // the speed of the intake motor
     private double feedingSpeed = 0.7; // the speed of the motor when feeding
     private Timer timer; //timer for intake
-    private double holdDelay = 0.2; // test the delay time
+    private double holdDelay = 0.02; // test the delay time
     
 
     public Intake(MotorController newIntakeMotor, DigitalInput newIntakeSensor, Timer newTimer){

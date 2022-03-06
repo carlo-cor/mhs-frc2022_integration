@@ -16,7 +16,7 @@ public class Drive {
     }
 
     private double deadzone(double dJoystickValue) {
-        if(Math.abs(dJoystickValue) < 0.2) {
+        if(Math.abs(dJoystickValue) < 0.1) {
             return 0; 
         }
         return dJoystickValue; 
