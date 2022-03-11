@@ -19,16 +19,17 @@ public class Intake {
 
     //SENSOR VALUES:
     private double holdDelay = 0.08;             // the delay time (TEST) 
-    private double extEncUp = 0;               // encoder for the extension going up (TEST) //-197 //-193 //-197'
-    private double extEncMidWay = 90;
+    private double extEncUp = -190;               // encoder for the extension going up (TEST) //-197 //-193 //-197'
+    private double extEncMidWay = -90;
     private double extEncDown = 190;            // encoder for the extension going down(TEST) //192 //199 //186
 
     //SPEEDS:
     private double intakeSpeed = 1;           // the speed of the intake motor
-    private double feedingSpeed = 0.7;          // the speed of the motor when feeding
-    private double outtakeSpeed = 0.5;          // the speed of the motor outtaking
+    private double feedingSpeed = 1;          // the speed of the motor when feeding
+    private double outtakeSpeed = 1;          // the speed of the motor outtaking
     
-    private double intakeExtSpeed = 0.4;        // speed for intake extension (TEST)
+    private double intakeExtSpeed = 1;        // speed for intake extension (TEST)
+    private double intakeRetractSpeed = 0.5;
     private double outerRollerSpeed = 1;      // the speed of the outerRoller motor (TEST)
 
     //
@@ -95,6 +96,18 @@ public class Intake {
         return armLimit.get();      //checks if intake arm is down
     }
 
+    public boolean atMidway(){
+        return intakeExtEnc.get() <= extEncMidWay;
+    }
+
+    public void setBarSpeed(double barSpeed){
+        intakeBar.set(barSpeed);
+    }
+
+    public void setRollerSpeed(double rollerSpeed){
+        outerRollers.set(rollerSpeed);
+    }
+
     //method for the motor intaking
     public void setIntakeSpeed(double speedForBar, double speedForRollers){     
         intakeBar.set(-speedForBar);
@@ -120,7 +133,7 @@ public class Intake {
 
     //retracts the intake up
     private void retract(double speedForIntakeExt){
-        if (intakeExtEnc.get() > extEncUp && armIsDown()){
+        if (intakeExtEnc.get() > extEncUp){
             intakeExt.set(-speedForIntakeExt);
         }
         else{
@@ -132,11 +145,11 @@ public class Intake {
     private void extend(double speedForIntakeExt){
         if (!armIsDown()){
             intakeExt.set(speedForIntakeExt);
-            intakeExtEnc.reset();
         }
 
         else{
             stopIntakeExt();
+            intakeExtEnc.reset();
         }
     }
 
@@ -196,7 +209,7 @@ public class Intake {
         SmartDashboard.putNumber("Timer", timer.get());             // displays the time to the timer
         SmartDashboard.putNumber("Encoder for intake extension", intakeExtEnc.get());    // displays the encoder count
         SmartDashboard.putNumber("Speed for extension", intakeExt.get());         // displays the speed of the intake extension 
-        SmartDashboard.putNumber("Extension counter", extCounter);
+        SmartDashboard.putNumber("Extension counter", extCounter);  //
         SmartDashboard.putNumber("Case statement counter", counter);
         SmartDashboard.putBoolean("Arm is down", armIsDown());
     }
@@ -209,7 +222,7 @@ public class Intake {
             break; 
 
             case RETRACT:           //sets intake to retract
-            retract(intakeExtSpeed);
+            retract(intakeRetractSpeed);
             break;
 
             case EXTEND:            //sets intake to extend
@@ -217,7 +230,7 @@ public class Intake {
             break;
 
             case MIDWAY:
-            midway(intakeExtSpeed); //sets intake to retract midway
+            midway(intakeRetractSpeed); //sets intake to retract midway
             break;
 
             case OUTTAKING:         //sets intake to outtaking stage

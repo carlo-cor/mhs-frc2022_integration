@@ -219,14 +219,16 @@ public class Robot extends TimedRobot {
     ///////////////////////////////////////////////////////////
 
     intakeMotor = new WPI_TalonSRX(3);
+    intakeMotor.setNeutralMode(NeutralMode.Brake);
     intakeSensor = new DigitalInput(4);
     intakeTimer = new Timer();
 
     intakeExt = new WPI_VictorSPX(1);
     intakeExtChannel = new DigitalInput(5);
-    intakeArmLim = new DigitalInput(7);
+    intakeArmLim = new DigitalInput(6);
     intakeExtEnc = new SingleChannelEncoder(intakeExt, intakeExtChannel);
     outerRollers = new WPI_VictorSPX(0);
+    intakeMotor.setNeutralMode(NeutralMode.Brake);
 
     intakeObj = new Intake(intakeMotor, intakeExt, outerRollers, intakeExtEnc, intakeSensor, intakeArmLim, intakeTimer);
 
@@ -304,12 +306,14 @@ public class Robot extends TimedRobot {
       if(mechJoy.getRawButton(1)){
         intakeObj.setTestingMode();
         intakeObj.setIntakeSpeed(mechJoy.getY(), mechJoy.getY());
+        //intakeObj.setBarSpeed(mechJoy.getY());
+        //intakeObj.setRollerSpeed(mechJoy.getY());
       }
       else{
         intakeObj.setStopMode();
       }
       
-      if (mechJoy.getRawButton(6)){
+      if (mechJoy.getRawButton(2)){
         intakeObj.setTestingMode();
         intakeObj.manualIntakeExt(mechJoy.getY());
       }
@@ -317,7 +321,7 @@ public class Robot extends TimedRobot {
         intakeObj.setStopMode();
       }
 
-      if(mechJoy.getRawButton(2)){
+      if(mechJoy.getRawButton(11)){
         shooterObj.setTesting();
         shooterObj.setManual(mechJoy.getY());
       }
@@ -326,23 +330,30 @@ public class Robot extends TimedRobot {
       }
 
       if(mechJoy.getRawButton(3)){
-        hangElevObj.setElevatorTest();
-        hangElevObj.testing(mechJoy.getY());
+        hangElevObj.setElevatorExtendLim();
       }
+
+      else if(mechJoy.getRawButton(4)){
+        hangElevObj.setElevatorRetractLim();
+      }
+
       else{
         hangElevObj.setElevatorStop();
       }
       
-      if(mechJoy.getRawButton(4)){
-        hangPivotObj.setTesting();
-        hangPivotObj.manualPivot(mechJoy.getY());
+      if(mechJoy.getRawButton(5)){
+        hangPivotObj.setPivInwardLim();
+      }
+
+      else if(mechJoy.getRawButton(6)){
+        hangPivotObj.setPivOutwardLim();
       }
       
       else{
         hangPivotObj.setStop();
       }
       
-      if(mechJoy.getRawButton(5)){
+      if(mechJoy.getRawButton(7)){
         weightAdjObj.setWeightTest();
         weightAdjObj.manualWeight(mechJoy.getY());
       }
@@ -369,14 +380,14 @@ public class Robot extends TimedRobot {
       ///////////////////////////////////////////////////////////
       //                        LIMELIGHT                      //
       ///////////////////////////////////////////////////////////
-/*
+
       if(baseJoy.getRawButton(9)){
         limelightObj.setDrivingMode();
       }
       else if(baseJoy.getRawButton(10)){
         limelightObj.setTrackingMode();
       }
-*/
+
       ///////////////////////////////////////////////////////////
       //                        HANG                           //
       ///////////////////////////////////////////////////////////
@@ -429,15 +440,11 @@ public class Robot extends TimedRobot {
         intakeObj.setFeedingMode();
       }
 
-      else if (baseJoy.getRawButton(9)){
+      else if (baseJoy.getRawButton(7)){
         intakeObj.setExtend();
       }
       
-      else if (baseJoy.getRawButton(10)){
-        intakeObj.setRetract();
-      }
-
-      else if(baseJoy.getRawButton(5)){
+      else if (baseJoy.getRawButton(8)){
         intakeObj.setMidway();
       }
 
@@ -450,30 +457,23 @@ public class Robot extends TimedRobot {
       ///////////////////////////////////////////////////////////
       
       if(baseJoy.getRawButton(1)){
+        intakeObj.setMidway();
         shooterObj.setLowHubShoot();  // 75% when testing
       }
       
       else if(baseJoy.getRawButton(3)){
+        intakeObj.setMidway();
         shooterObj.setUpperHubShoot();
       }
 
       else if(baseJoy.getRawButton(4)){
+        intakeObj.setMidway();
         shooterObj.setLaunchPadShoot();
       }
       
       else{
         shooterObj.setStop();
       }
-
-      /*
-      if(mechJoy.getRawButton(2)){
-        shooterObj.setTesting();
-        shooterObj.setManual(SmartDashboard.getNumber("SHOOTER SPEED", 0));
-      }
-      else{
-        shooterObj.setStop();
-      }
-      */
 
       ///////////////////////////////////////////////////////////
       //                         RUN                           //
