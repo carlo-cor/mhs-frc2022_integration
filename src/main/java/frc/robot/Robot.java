@@ -44,6 +44,7 @@ public class Robot extends TimedRobot {
   |
   |  LEFT DRIVE | 2 NEO MOTORS: 7, 8
   |  RIGHT DRIVE | 2 NEO MOTORS: 5, 6
+  |  BRUSHLESS NEO MOTORS | COAST MODE
   |
   */
 
@@ -61,14 +62,14 @@ public class Robot extends TimedRobot {
 
   /*
   |
-  |  ELEVATOR ARM | FALCON 500 MOTOR: 2
-  |  PIVOT ARM | 775 PRO MOTOR: 4
-  |  PIVOT ENCODER | VERSA PLANETARY
+  |  ELEVATOR ARM | FALCON 500 MOTOR | FALCON FX: 2
+  |  PIVOT ARM | 775 PRO MOTOR | TALON SRX: 4
+  |  PIVOT ENCODER | VERSA PLANETARY | TO PIVOT ARM MOTOR
   |  UPPER SWITCH | DIO LIMIT SWITCH: 2
   |  BOTTOM SWITCH | DIO LIMIT SWITCH: 1 
   |  FRONT SWITCH | DIO LIMIT SWITCH: 0
   |  BACK SWITCH | DIO LIMIT SWITCH: 3
-  |  WEIGHT ADJUSTER | BOSCH MOTOR: 9 
+  |  WEIGHT ADJUSTER | BOSCH MOTOR | TALON SRX (WILL BE CHANGED TO A VICTOR SPX): 9 
   |  WEIGHT ADJUSTER ENC | BOSCH DIO CHANNEL: 9
   */
 
@@ -80,7 +81,8 @@ public class Robot extends TimedRobot {
   private DigitalInput bottomLSwitch;
   private DigitalInput frontLSwitch;
   private DigitalInput backLSwitch;
-  private WPI_TalonSRX weightAdjMotor;
+  private WPI_VictorSPX weightAdjMotor;
+  //  private WPI_VictorSPX weightAdjMotor;
   private DigitalInput weightAdjChannel;
   private SingleChannelEncoder weightAdjEnc;
 
@@ -101,9 +103,24 @@ public class Robot extends TimedRobot {
   |
   */
 
+  /*
+  |
+  |  EXTENSION PORTION: NEEDS TO BE TESTED 
+  |  INTAKE ARM MOTOR | BOSCH MOTOR | VICTOR SPX: * PORT NEEDED *
+  |  INTAKE ARM ENCODER | TO INTAKE ARM MOTOR
+  |  INTAKE ROLLER EXTENSION | BOSCH MOTOR | VICTOR SPX: * PORT NEEDED *
+  |  
+  */
+
   private WPI_TalonSRX intakeMotor;
   private DigitalInput intakeSensor;
   private Timer intakeTimer;
+
+  private WPI_VictorSPX intakeExt;
+  private DigitalInput intakeExtChannel;
+  private DigitalInput intakeArmLim;
+  private SingleChannelEncoder intakeExtEnc;
+  private WPI_VictorSPX outerRollers;
 
   private Intake intakeObj;
 
@@ -136,8 +153,8 @@ public class Robot extends TimedRobot {
   */
 
   private Joystick baseJoy;
-  //  private Joystick baseTwoJoy;
   private Joystick mechJoy;
+  //  private Joystick baseTwoJoy;
 
   ///////////////////////////////////////////////////////////
   //                       AUTONOMOUS                      //
@@ -187,7 +204,7 @@ public class Robot extends TimedRobot {
     bottomLSwitch = new DigitalInput(1);
     frontLSwitch = new DigitalInput(0);
     backLSwitch = new DigitalInput(3);
-    weightAdjMotor = new WPI_TalonSRX(9);
+    weightAdjMotor = new WPI_VictorSPX(5);
     weightAdjChannel = new DigitalInput(9); 
     weightAdjEnc = new SingleChannelEncoder(weightAdjMotor, weightAdjChannel);
     gyro = new AHRS(Port.kMXP.kOnboard);
@@ -202,9 +219,16 @@ public class Robot extends TimedRobot {
     ///////////////////////////////////////////////////////////
 
     intakeMotor = new WPI_TalonSRX(3);
-    intakeSensor = new DigitalInput(6);
+    intakeSensor = new DigitalInput(4);
     intakeTimer = new Timer();
-    intakeObj = new Intake(intakeMotor, intakeSensor, intakeTimer);
+
+    intakeExt = new WPI_VictorSPX(1);
+    intakeExtChannel = new DigitalInput(5);
+    intakeArmLim = new DigitalInput(7);
+    intakeExtEnc = new SingleChannelEncoder(intakeExt, intakeExtChannel);
+    outerRollers = new WPI_VictorSPX(0);
+
+    intakeObj = new Intake(intakeMotor, intakeExt, outerRollers, intakeExtEnc, intakeSensor, intakeArmLim, intakeTimer);
 
     ///////////////////////////////////////////////////////////
     //                         SHOOTER                       //
@@ -220,8 +244,8 @@ public class Robot extends TimedRobot {
     ///////////////////////////////////////////////////////////
 
     baseJoy = new Joystick(0);
-    //  baseTwoJoy = new Joystick(1);
     mechJoy = new Joystick(1);
+    //  baseTwoJoy = new Joystick(2);
 
     ///////////////////////////////////////////////////////////
     //                         AUTONOMOUS                    //
@@ -240,7 +264,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    
+    //SmartDashboard.putNumber("SHOOTER SPEED", SmartDashboard.getNumber("SHOOTER SPEED", 0)); 
   }
 
   /**
@@ -276,13 +300,29 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     if(mechJoy.getRawAxis(3) < 0){
       SmartDashboard.putString("MODE: ", "TESTING");
-
+      
       if(mechJoy.getRawButton(1)){
         intakeObj.setTestingMode();
-        intakeObj.setIntakeSpeed(mechJoy.getY());
+        intakeObj.setIntakeSpeed(mechJoy.getY(), mechJoy.getY());
       }
       else{
         intakeObj.setStopMode();
+      }
+      
+      if (mechJoy.getRawButton(6)){
+        intakeObj.setTestingMode();
+        intakeObj.manualIntakeExt(mechJoy.getY());
+      }
+      else{
+        intakeObj.setStopMode();
+      }
+
+      if(mechJoy.getRawButton(2)){
+        shooterObj.setTesting();
+        shooterObj.setManual(mechJoy.getY());
+      }
+      else{
+        shooterObj.setStop();
       }
 
       if(mechJoy.getRawButton(3)){
@@ -292,7 +332,6 @@ public class Robot extends TimedRobot {
       else{
         hangElevObj.setElevatorStop();
       }
-
       
       if(mechJoy.getRawButton(4)){
         hangPivotObj.setTesting();
@@ -303,16 +342,7 @@ public class Robot extends TimedRobot {
         hangPivotObj.setStop();
       }
       
-
       if(mechJoy.getRawButton(5)){
-        shooterObj.setTesting();
-        shooterObj.setManual(mechJoy.getY());
-      }
-      else{
-        shooterObj.setStop();
-      }
-      
-      if(mechJoy.getRawButton(6)){
         weightAdjObj.setWeightTest();
         weightAdjObj.manualWeight(mechJoy.getY());
       }
@@ -320,7 +350,6 @@ public class Robot extends TimedRobot {
         weightAdjObj.setWeightStop();
       }
 
-      intakeObj.displayMethod();
       shooterObj.displayValues();
       hangElevObj.run();
       hangPivotObj.run();
@@ -340,20 +369,19 @@ public class Robot extends TimedRobot {
       ///////////////////////////////////////////////////////////
       //                        LIMELIGHT                      //
       ///////////////////////////////////////////////////////////
-
+/*
       if(baseJoy.getRawButton(9)){
         limelightObj.setDrivingMode();
       }
       else if(baseJoy.getRawButton(10)){
         limelightObj.setTrackingMode();
       }
-
+*/
       ///////////////////////////////////////////////////////////
       //                        HANG                           //
       ///////////////////////////////////////////////////////////
       
-      
-      if(mechJoy.getRawButton(0)){
+      if(mechJoy.getRawButton(1)){
         hangObj.setMidHang();
       }
 
@@ -373,8 +401,7 @@ public class Robot extends TimedRobot {
 
       else if(mechJoy.getRawButton(3)){
         hangObj.setTesting();
-        hangElevObj.setElevatorTest();
-        hangElevObj.manualElev(mechJoy.getY());
+        hangElevObj.setElevatorExtendLim();
       }
 
       else{
@@ -402,6 +429,18 @@ public class Robot extends TimedRobot {
         intakeObj.setFeedingMode();
       }
 
+      else if (baseJoy.getRawButton(9)){
+        intakeObj.setExtend();
+      }
+      
+      else if (baseJoy.getRawButton(10)){
+        intakeObj.setRetract();
+      }
+
+      else if(baseJoy.getRawButton(5)){
+        intakeObj.setMidway();
+      }
+
       else{
         intakeObj.setStopMode();
       }
@@ -411,7 +450,7 @@ public class Robot extends TimedRobot {
       ///////////////////////////////////////////////////////////
       
       if(baseJoy.getRawButton(1)){
-        shooterObj.setLowHubShoot();
+        shooterObj.setLowHubShoot();  // 75% when testing
       }
       
       else if(baseJoy.getRawButton(3)){
@@ -425,11 +464,22 @@ public class Robot extends TimedRobot {
       else{
         shooterObj.setStop();
       }
-      
+
+      /*
+      if(mechJoy.getRawButton(2)){
+        shooterObj.setTesting();
+        shooterObj.setManual(SmartDashboard.getNumber("SHOOTER SPEED", 0));
+      }
+      else{
+        shooterObj.setStop();
+      }
+      */
+
       ///////////////////////////////////////////////////////////
       //                         RUN                           //
       ///////////////////////////////////////////////////////////
 
+      hangElevObj.run();
       hangObj.run();
       intakeObj.run();
       shooterObj.run();
