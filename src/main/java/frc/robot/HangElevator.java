@@ -21,15 +21,16 @@ public class HangElevator{
     private DigitalInput limitBot;          //0
 
     //VALUES
-    private double closeTopLimit = 0.75* 348639;                  //close to top limit switch enc. value         
-    private double closeBotLimit = 0.25 * 348639;                 //close to bottom limit switch enc. value
-    private double extendSpeed = 0.40;                         //counter-clockwise to extend (-speed)
+    private double closeTopLimit = 0.9* 348639;                  //close to top limit switch enc. value         
+    private double closeBotLimit = 0.1 * 348639;                 //close to bottom limit switch enc. value
+    private double extendSpeed = 0.55;                         //counter-clockwise to extend (-speed)
     private double slowExtendSpeed = 0.20;
-    private double retractSpeed = -0.40;                         //clockwise to retract (+speed)
+    private double retractSpeed = -0.55;                         //clockwise to retract (+speed)
     private double slowRetractSpeed = -0.20;
     private double pivotableEnc = 170000; 
     public double equalToPivot = 82451.3333;                            //encoder count for elevator to be same height as pivot       //82586, 82530, 82238
 //58593, , 55551, 55390, 59987, 56617
+    
     //CONSTRUCTOR
     public HangElevator(MotorController elevMotor, DigitalInput limitSwitchTop, DigitalInput limitSwitchBottom, TalonFXSensorCollection elevEncoder){
         elevatorMotor = elevMotor;
@@ -95,7 +96,7 @@ public class HangElevator{
     }
 
     public boolean abovePivotHigh(){
-        return elevatorEncoder.getIntegratedSensorPosition() >= (equalToPivot + 50000);
+        return elevatorEncoder.getIntegratedSensorPosition() >= (equalToPivot + 25000);         //from 50,000
     }
 
     public boolean belowPivot(){

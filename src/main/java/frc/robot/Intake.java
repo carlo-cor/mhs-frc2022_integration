@@ -48,7 +48,6 @@ public class Intake {
 
     public enum state{ //states of the intake
         INTAKING, RETRACT, EXTEND, MIDWAY, OUTTAKING, FEEDING, TESTING, OVERRIDE, STOP
-
     }
 
     public state mode = state.STOP;
@@ -204,7 +203,7 @@ public class Intake {
     //displays sensor values and intake state
     public void displayMethod(){
         
-        SmartDashboard.putBoolean("Intake Sensor", cargoCheck());   // displays if the sensor is being triggered
+        SmartDashboard.putBoolean("Intake Sensor", !cargoCheck());   // displays if the sensor is being triggered
         SmartDashboard.putString("Mode", mode.toString());          // displays the current state of the intake
         SmartDashboard.putNumber("Timer", timer.get());             // displays the time to the timer
         SmartDashboard.putNumber("Encoder for intake extension", intakeExtEnc.get());    // displays the encoder count
@@ -218,6 +217,7 @@ public class Intake {
         displayMethod();
         switch(mode){
             case INTAKING:          //sets intake to intaking stage
+            extend(intakeExtSpeed);
             intaking();
             break; 
 

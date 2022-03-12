@@ -106,13 +106,14 @@ public class Robot extends TimedRobot {
   /*
   |
   |  EXTENSION PORTION: NEEDS TO BE TESTED 
-  |  INTAKE ARM MOTOR | BOSCH MOTOR | VICTOR SPX: * PORT NEEDED *
+  |  INTAKE ARM MOTOR | BOSCH MOTOR | VICTOR SPX: 1
+  |  INTAKE ARM CHANNEL | 6
   |  INTAKE ARM ENCODER | TO INTAKE ARM MOTOR
-  |  INTAKE ROLLER EXTENSION | BOSCH MOTOR | VICTOR SPX: * PORT NEEDED *
+  |  INTAKE ROLLER | BOSCH MOTOR | VICTOR SPX: 0
   |  
   */
 
-  private WPI_TalonSRX intakeMotor;
+  private WPI_TalonSRX intakeBar;
   private DigitalInput intakeSensor;
   private Timer intakeTimer;
 
@@ -189,7 +190,25 @@ public class Robot extends TimedRobot {
     
     driveObj = new Drive(frontLeft, backLeft, frontRight, backRight);
     
-    
+    ///////////////////////////////////////////////////////////
+    //                         INTAKE                        //
+    ///////////////////////////////////////////////////////////
+
+    intakeBar = new WPI_TalonSRX(3);
+    intakeBar.setNeutralMode(NeutralMode.Brake);
+    intakeSensor = new DigitalInput(4);
+    intakeTimer = new Timer();
+
+    intakeExt = new WPI_VictorSPX(1);
+    intakeExt.setNeutralMode(NeutralMode.Brake);
+    intakeExtChannel = new DigitalInput(5);
+    intakeArmLim = new DigitalInput(6);
+    intakeExtEnc = new SingleChannelEncoder(intakeExt, intakeExtChannel);
+    outerRollers = new WPI_VictorSPX(0);
+    outerRollers.setNeutralMode(NeutralMode.Brake);
+
+    intakeObj = new Intake(intakeBar, intakeExt, outerRollers, intakeExtEnc, intakeSensor, intakeArmLim, intakeTimer);
+
     ///////////////////////////////////////////////////////////
     //                         HANG                          //
     ///////////////////////////////////////////////////////////
@@ -202,8 +221,8 @@ public class Robot extends TimedRobot {
     pivotEnc = new TalonEncoder(pivotMotor);
     upperLSwitch = new DigitalInput(2);
     bottomLSwitch = new DigitalInput(1);
-    frontLSwitch = new DigitalInput(0);
-    backLSwitch = new DigitalInput(3);
+    frontLSwitch = new DigitalInput(3);
+    backLSwitch = new DigitalInput(0);
     weightAdjMotor = new WPI_VictorSPX(5);
     weightAdjChannel = new DigitalInput(9); 
     weightAdjEnc = new SingleChannelEncoder(weightAdjMotor, weightAdjChannel);
@@ -212,25 +231,7 @@ public class Robot extends TimedRobot {
     hangPivotObj = new HangPivot(pivotMotor, pivotEnc, gyro, frontLSwitch, backLSwitch);
     hangElevObj = new HangElevator(elevMotor, upperLSwitch, bottomLSwitch, elevEnc);
     weightAdjObj = new WeightAdjuster(weightAdjMotor, weightAdjEnc);
-    hangObj = new Hang(hangPivotObj, hangElevObj, weightAdjObj, pivotEnc);
-    
-    ///////////////////////////////////////////////////////////
-    //                         INTAKE                        //
-    ///////////////////////////////////////////////////////////
-
-    intakeMotor = new WPI_TalonSRX(3);
-    intakeMotor.setNeutralMode(NeutralMode.Brake);
-    intakeSensor = new DigitalInput(4);
-    intakeTimer = new Timer();
-
-    intakeExt = new WPI_VictorSPX(1);
-    intakeExtChannel = new DigitalInput(5);
-    intakeArmLim = new DigitalInput(6);
-    intakeExtEnc = new SingleChannelEncoder(intakeExt, intakeExtChannel);
-    outerRollers = new WPI_VictorSPX(0);
-    intakeMotor.setNeutralMode(NeutralMode.Brake);
-
-    intakeObj = new Intake(intakeMotor, intakeExt, outerRollers, intakeExtEnc, intakeSensor, intakeArmLim, intakeTimer);
+    hangObj = new Hang(hangPivotObj, hangElevObj, intakeObj, weightAdjObj, pivotEnc);
 
     ///////////////////////////////////////////////////////////
     //                         SHOOTER                       //
@@ -306,14 +307,8 @@ public class Robot extends TimedRobot {
       if(mechJoy.getRawButton(1)){
         intakeObj.setTestingMode();
         intakeObj.setIntakeSpeed(mechJoy.getY(), mechJoy.getY());
-        //intakeObj.setBarSpeed(mechJoy.getY());
-        //intakeObj.setRollerSpeed(mechJoy.getY());
       }
-      else{
-        intakeObj.setStopMode();
-      }
-      
-      if (mechJoy.getRawButton(2)){
+      else if(mechJoy.getRawButton(2)){
         intakeObj.setTestingMode();
         intakeObj.manualIntakeExt(mechJoy.getY());
       }
@@ -392,25 +387,24 @@ public class Robot extends TimedRobot {
       //                        HANG                           //
       ///////////////////////////////////////////////////////////
       
-      if(mechJoy.getRawButton(1)){
+      if(mechJoy.getRawButton(3)){
         hangObj.setMidHang();
       }
 
-      else if(mechJoy.getRawButton(7)){  
+      else if(mechJoy.getRawButton(4)){  
         hangObj.setHighHang();
       }
 
-      else if(mechJoy.getRawButton(8)){
+      else if(mechJoy.getRawButton(5)){
         hangObj.setHighHangGrab();
       }
 
-      else if(mechJoy.getRawButton(2)){
+      else if(mechJoy.getRawButton(7)){
         hangObj.setTesting();
-        hangPivotObj.setTesting();
-        hangPivotObj.manualPivot(mechJoy.getY());
+        hangPivotObj.setPivInwardLim();
       }
 
-      else if(mechJoy.getRawButton(3)){
+      else if(mechJoy.getRawButton(8)){
         hangObj.setTesting();
         hangElevObj.setElevatorExtendLim();
       }

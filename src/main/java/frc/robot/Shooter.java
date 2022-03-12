@@ -12,9 +12,9 @@ public class Shooter{
     private Limelight limelight;
     private Drive drive;
 
-    //OTHER VARIABLES
-    private double upperLimit;
-    private double lowerLimit;
+    //METHOD VARIABLES
+    private double upperLimit = -1;
+    private double lowerLimit = -1;
     private double setSpeed = 0;
     private double turnSpeed = 0;
     private double rangeSpeed = 0;
@@ -28,8 +28,8 @@ public class Shooter{
     private final double maximumTrackingDistance = 17;          //maximum distance limelight can track accurately
     private final double cameraToBumperDistance = 0.9375;
 
-    private final double lowHubSpeed = -0.4;                    //set speed to shoot in low hub
-    private final double launchPadSpeed = -1.0;                 //set speed to shoot into the upper hub from the LaunchPad
+    private final double lowHubSpeed = 0.4;                    //set speed to shoot in low hub
+    private final double launchPadSpeed = 1.0;                 //set speed to shoot into the upper hub from the LaunchPad
 
 
     //CONSTRUCTOR
@@ -87,14 +87,17 @@ public class Shooter{
 
     //Displays values and booleans
     public void displayValues(){
-        SmartDashboard.putNumber("Distance (ft.)", getDistance());
-        SmartDashboard.putNumber("Actual RPM", getActualRPM());  
+        
+        //DELETE THESE LATER (ONLY USED FOR TESTING RIGHT NOW):
         SmartDashboard.putNumber("Set Speed:", setSpeed);
         SmartDashboard.putNumber("Upper Limit:", upperLimit);
         SmartDashboard.putNumber("Lower Limit:", lowerLimit);
+        SmartDashboard.putNumber("Actual RPM", getActualRPM());
+        SmartDashboard.putNumber("Distance (ft.)", getDistance());
 
+        //KEEP THESE
         SmartDashboard.putBoolean("In Range?", checkIfWithinShootingDistance());
-        SmartDashboard.putBoolean("Aligned?", checkAligned());
+        SmartDashboard.putBoolean("Aligned?", !checkAligned());
         SmartDashboard.putBoolean("SHOOT!", checkRPM());
     }
 
@@ -137,14 +140,17 @@ public class Shooter{
         }
     }
 
+    //Gets the robot to an optimal shooting range for the upper hub
     private void getInRange(){
 
         limelight.setTrackingMode();
 
-        if(getDistance() < minimumShootingDistance + 1){
+        //if TOO CLOSE to the hub, move BACKWARDS
+        if(getDistance() > 0 && getDistance() < minimumShootingDistance + 0.5){  
             rangeSpeed = 0.4;
         }
-        else if(getDistance() > maximumTrackingDistance - 1){
+        //if TOO FAR to the hub, move FORWARD
+        else if(getDistance() > maximumTrackingDistance - 0.5){ 
             rangeSpeed = -0.4;
         }
         else{
@@ -152,8 +158,7 @@ public class Shooter{
         }
     }
 
-
-    //stops the shooter
+    //Stops the shooter
     private void stop(){
         shooterMotor.stopMotor();
         setSpeed = 0;
@@ -166,10 +171,10 @@ public class Shooter{
         setSpeed = lowHubSpeed; 
         upperLimit = 2600;
         lowerLimit = 2200;
-        shooterMotor.set(-setSpeed); 
+        shooterMotor.set(setSpeed); 
     }
 
-    //Method to shoot in the upper hub using limelight
+    //Method to shoot in the upper hub using limelight (STILL NEED TO GET VALUES FOR REAL ROBOT)
     private void upperHubShoot(){ 
         limelight.setTrackingMode();
 
@@ -230,7 +235,7 @@ public class Shooter{
 
         setSpeed = launchPadSpeed;  
         upperLimit = 6400;
-        lowerLimit = 6200;   
+        lowerLimit = 6250;   
         shooterMotor.set(setSpeed); 
     }
 
