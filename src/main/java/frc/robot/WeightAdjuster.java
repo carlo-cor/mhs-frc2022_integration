@@ -5,19 +5,21 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class WeightAdjuster {
 
-    // ANGLING FOR HIGHER BARS REQUIRES FOR WEIGHTSHIFTER TO GO INWARD. BEFORE SHIFTING WEIGHT (FOR THE ANGLE), MAKE SURE ELEV IS FULLY EXTENDED
+    // ANGLING FOR HIGHER BARS REQUIRES FOR WEIGHTSHIFTER TO GO INWARD. BEFORE SHIFTING WEIGHT (FOR THE ANGLE), MAKE SURE ELEV IS FULLY RETRACTED
     // PULLING OFF FROM LOWER BARS REQUIRES FOR WEIGHTSHIFTER TO GO OUTWARD
 
     //ASSUME GOING UP IS POSITIVE
+    //RANGE WHEN ELEVATOR IS UP: -85 to 48 (Down to Up)
+    //RANGE WHEN ELEVATOR IS DOWN: -85 to 25 (Down to Up)
 
     private MotorController weightAdjuster;
     private SingleChannelEncoder weightEncoder;
 
-    public double weightSpeedUp = 0.20;               //speed going up
-    public double weightSpeedDown = -0.20;            //speed going down
+    private double weightSpeedUp = 0.35;               //speed going up
+    private double weightSpeedDown = -0.35;            //speed going down
 
-    private double weightMaxUp = 100;            //encoder count for the most up it can be
-    private double weightMaxDown = -100;          //encoder count for the farthest down it can be
+    private double weightMaxUp = 48;            //encoder count for the most up it can be
+    private double weightMaxDown = -85;          //encoder count for the farthest down it can be
 
     public WeightAdjuster(MotorController WeightShifter, SingleChannelEncoder shifterEnc){
         weightAdjuster = WeightShifter;
@@ -51,20 +53,24 @@ public class WeightAdjuster {
     }
 
     //BOOLS
-    public boolean beforeUpLim() {
-        return weightEncoder.get() <= weightMaxUp; 
+    private boolean beforeUpLim() {
+        return weightEncoder.get() <= (weightMaxUp - 10); 
     }
 
-    public boolean beforeDownLim() {
-        return weightEncoder.get() >= weightMaxDown; 
+    private boolean beforeDownLim() {
+        return weightEncoder.get() >= (weightMaxDown + 10); 
     }
 
-    public boolean beforeHomeLim() {
-        return weightEncoder.get() > 1; 
+    private boolean beforeHomeLim() {
+        return weightEncoder.get() > 0; 
     }
 
-    public boolean afterHomeLim() {
-        return weightEncoder.get() < -1; 
+    private boolean afterHomeLim() {
+        return weightEncoder.get() < 0; 
+    }
+
+    private boolean elevDownRange() {                      //returns true when past up range (when elev is down)
+        return weightEncoder.get() >= 25; 
     }
 
     //METHODS
@@ -75,6 +81,14 @@ public class WeightAdjuster {
 
         else{           
             weightAdjuster.set(0);
+        }
+    }
+
+    public void weightUpElevDown() {              //drives weight to up limit when elevator is down
+        if (elevDownRange()) {
+            weightAdjuster.set(0); 
+        } else {
+            weightAdjuster.set(weightSpeedUp); 
         }
     }
 
@@ -100,18 +114,6 @@ public class WeightAdjuster {
         else{
             weightAdjuster.set(0);
         }
-    }
-
-    public void weightReset() {
-        weightEncoder.reset();
-    }
-
-    public void manualUp() {
-        weightAdjuster.set(weightSpeedUp); 
-    }
-
-    public void manualDown() {
-        weightAdjuster.set(weightSpeedDown); 
     }
 
     private void stop(){

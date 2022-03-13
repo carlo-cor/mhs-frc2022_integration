@@ -67,9 +67,9 @@ public class Robot extends TimedRobot {
   |  PIVOT ENCODER | VERSA PLANETARY | TO PIVOT ARM MOTOR
   |  UPPER SWITCH | DIO LIMIT SWITCH: 2
   |  BOTTOM SWITCH | DIO LIMIT SWITCH: 1 
-  |  FRONT SWITCH | DIO LIMIT SWITCH: 0
-  |  BACK SWITCH | DIO LIMIT SWITCH: 3
-  |  WEIGHT ADJUSTER | BOSCH MOTOR | TALON SRX (WILL BE CHANGED TO A VICTOR SPX): 9 
+  |  FRONT SWITCH | DIO LIMIT SWITCH: 3
+  |  BACK SWITCH | DIO LIMIT SWITCH: 0
+  |  WEIGHT ADJUSTER | BOSCH MOTOR | VICTOR SPX: 5 
   |  WEIGHT ADJUSTER ENC | BOSCH DIO CHANNEL: 9
   */
 
@@ -98,7 +98,7 @@ public class Robot extends TimedRobot {
   /*
   |
   |  INTAKE | BAG MOTOR | TALON SRX: 3
-  |  HOLD SENSOR | DIO PHOTOELECTRIC SENSOR: 6
+  |  HOLD SENSOR | DIO PHOTOELECTRIC SENSOR: 4
   |  INTAKE TIMER | DELAY FOR INTAKING
   |
   */
@@ -196,7 +196,7 @@ public class Robot extends TimedRobot {
 
     intakeBar = new WPI_TalonSRX(3);
     intakeBar.setNeutralMode(NeutralMode.Brake);
-    intakeSensor = new DigitalInput(4);
+
     intakeTimer = new Timer();
 
     intakeExt = new WPI_VictorSPX(1);
@@ -206,6 +206,7 @@ public class Robot extends TimedRobot {
     intakeExtEnc = new SingleChannelEncoder(intakeExt, intakeExtChannel);
     outerRollers = new WPI_VictorSPX(0);
     outerRollers.setNeutralMode(NeutralMode.Brake);
+    intakeSensor = new DigitalInput(4);
 
     intakeObj = new Intake(intakeBar, intakeExt, outerRollers, intakeExtEnc, intakeSensor, intakeArmLim, intakeTimer);
 
@@ -226,7 +227,7 @@ public class Robot extends TimedRobot {
     weightAdjMotor = new WPI_VictorSPX(5);
     weightAdjChannel = new DigitalInput(9); 
     weightAdjEnc = new SingleChannelEncoder(weightAdjMotor, weightAdjChannel);
-    gyro = new AHRS(Port.kMXP.kOnboard);
+    gyro = new AHRS(Port.kMXP);
 
     hangPivotObj = new HangPivot(pivotMotor, pivotEnc, gyro, frontLSwitch, backLSwitch);
     hangElevObj = new HangElevator(elevMotor, upperLSwitch, bottomLSwitch, elevEnc);
@@ -305,15 +306,16 @@ public class Robot extends TimedRobot {
       SmartDashboard.putString("MODE: ", "TESTING");
       
       if(mechJoy.getRawButton(1)){
-        intakeObj.setTestingMode();
+        intakeObj.setIntakeTestingMode();
         intakeObj.setIntakeSpeed(mechJoy.getY(), mechJoy.getY());
       }
       else if(mechJoy.getRawButton(2)){
-        intakeObj.setTestingMode();
+        intakeObj.setArmTestingMode();
         intakeObj.manualIntakeExt(mechJoy.getY());
       }
       else{
-        intakeObj.setStopMode();
+        intakeObj.setIntakeStopMode();
+        intakeObj.setArmStopMode();
       }
 
       if(mechJoy.getRawButton(11)){
@@ -359,7 +361,7 @@ public class Robot extends TimedRobot {
       shooterObj.displayValues();
       hangElevObj.run();
       hangPivotObj.run();
-      intakeObj.run();
+      intakeObj.intakeRun();
       shooterObj.run();
       weightAdjObj.run();
     }
@@ -417,7 +419,8 @@ public class Robot extends TimedRobot {
       //                        INTAKE                         //
       ///////////////////////////////////////////////////////////
       
-      
+    
+
       if(baseJoy.getRawButton(11)){
         intakeObj.setIntakeMode();
       }
@@ -433,35 +436,45 @@ public class Robot extends TimedRobot {
       else if(baseJoy.getRawButton(2)){
         intakeObj.setFeedingMode();
       }
-
-      else if (baseJoy.getRawButton(7)){
-        intakeObj.setExtend();
+      else{
+          intakeObj.setIntakeStopMode();
       }
       
-      else if (baseJoy.getRawButton(8)){
+
+      if (mechJoy.getRawButton(6)){
+        intakeObj.setExtend();
+      }
+      else if(mechJoy.getRawButton(9)){
         intakeObj.setMidway();
       }
-
       else{
-        intakeObj.setStopMode();
+        if(!intakeObj.cargoCheck()){ 
+          intakeObj.setMidway();
+        }
+        else{
+          intakeObj.setArmStopMode();
+        }
       }
 
+      
       ///////////////////////////////////////////////////////////
       //                         SHOOTER                       //
       ///////////////////////////////////////////////////////////
       
       if(baseJoy.getRawButton(1)){
-        intakeObj.setMidway();
-        shooterObj.setLowHubShoot();  // 75% when testing
+        //intakeObj.setMidway();
+        //shooterObj.setLowHubShoot();  // 75% when testing 
+        shooterObj.setTesting();
+        shooterObj.setManual(0.6);
       }
       
       else if(baseJoy.getRawButton(3)){
-        intakeObj.setMidway();
+        //intakeObj.setMidway();
         shooterObj.setUpperHubShoot();
       }
 
       else if(baseJoy.getRawButton(4)){
-        intakeObj.setMidway();
+        //intakeObj.setMidway();
         shooterObj.setLaunchPadShoot();
       }
       
@@ -475,7 +488,7 @@ public class Robot extends TimedRobot {
 
       hangElevObj.run();
       hangObj.run();
-      intakeObj.run();
+      intakeObj.intakeRun();
       shooterObj.run();
       weightAdjObj.run();
     }
@@ -501,12 +514,12 @@ public class Robot extends TimedRobot {
       }
 
       else if(baseJoy.getRawButton(12)){
-        SmartDashboard.putString("AUTONOMOUS: ", "TWO BALL");
-        autonObj.setTwoBall();
+        SmartDashboard.putString("AUTONOMOUS: ", "TWO BALL A");
+        autonObj.setTwoBallA();
       }
 
       else if(baseJoy.getRawButton(9)){
-        SmartDashboard.putString("AUTONOMOUS: ", "THREE BALL");
+        SmartDashboard.putString("AUTONOMOUS: ", "THREE BALL HIGH");
         autonObj.setThreeBallHigh();
       }
 
@@ -519,6 +532,8 @@ public class Robot extends TimedRobot {
         SmartDashboard.putString("AUTONOMOUS: ", "NOTHING");
         autonObj.setNothing();
       }
+
+      hangObj.resetCounters();
     }
 
   /** This function is called once when test mode is enabled. */

@@ -152,11 +152,11 @@ public class Hang {
                 pivot.resetEnc();
                 elevator.setElevatorStop();
                 elevator.encoderReset();
-                intake.setStopMode();
+                intake.setArmStopMode();
                 setUpMidCount++;
             }
     
-            else{
+            else{      
                 pivot.setPivInwardLim();
                 elevator.setElevatorRetractLim();
                 intake.setExtend();                  //keep intake down
@@ -164,7 +164,7 @@ public class Hang {
             break;
 
             case 1:                     //EXTEND ELEV AND PIVOT FOR SETUP POS.
-            if(elevator.topLimitTouched() && pivot.afterOutwardEnc()){
+            if(elevator.topLimitTouched() && pivot.afterOutwardEnc() && intake.extInsidePerimeter()){
                 pivot.setStop();
                 elevator.setElevatorStop();
                 timer.start();
@@ -173,7 +173,13 @@ public class Hang {
             else{
                 elevator.setElevatorExtendLim();
                 pivot.setPivOutward();
-                //bring the intake up to the midway position i think idk
+                if(intake.extInsidePerimeter()){
+                    intake.setArmStopMode();
+                }
+
+                else{
+                    intake.setRetract();
+                }
             }
             break;
 
@@ -349,7 +355,7 @@ public class Hang {
         SmartDashboard.putNumber("TIMER", timer.get()); 
 
         weightAdjuster.run();
-        intake.run();
+        intake.intakeRun();
         pivot.run(); 
         elevator.run();
 
