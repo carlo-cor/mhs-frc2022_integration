@@ -39,6 +39,8 @@ public class Hang {
     private int setUpHighGrabCount = 0;
     private Timer timer;
 
+    //ELEVATOR SPEEDS
+
     /////////////////////////////////////////////
     //                                         //
     //              CONSTRUCTOR                //
@@ -107,27 +109,6 @@ public class Hang {
     }    
 
     private void testing(){}
-/*
-    public void elevatorWeightUp() {
-        if (elevator.topLimitTouched()){        //if the top limit is touched, stop elevator
-            elevator.setElevatorStop();                                          
-            weightAdjuster.setWeightUp();
-        } 
-        else {
-            elevator.setElevatorExtendLim();       //extend elevator otherwise
-        }
-    }
-    public void elevatorWeightDown(){
-        if (weightAdjuster.beforeDownLim()) {       //if the weight is up, set it down until its in the right "down" position
-        weightAdjuster.setWeightDown();
-        } 
-        
-        else {
-        weightAdjuster.setWeightStop();     //once the weight is down, retract elevator
-        elevator.setElevatorRetractLim();
-        }
-    }
-*/
 
     private void resetPosition(){   //RESETS ENCODER WHEN PIVOT AND ELEVATOR TOUCHES THEIR RESPECTIVE LIMITS
         if(pivot.frontLimitTouched() && elevator.bottomLimitTouched()){
@@ -139,7 +120,7 @@ public class Hang {
 
         else{
             pivot.setPivInwardLim();
-            elevator.setElevatorRetractLim();
+            elevator.setRetractLimFast();
         }
     }
     
@@ -147,6 +128,7 @@ public class Hang {
         switch(setUpMidCount) {
 
             case 0:                     
+            //RESET ENCODERS FOR HANG ELEVATOR, PIVOT, AND INTAKE
             if(pivot.frontLimitTouched() && elevator.bottomLimitTouched() && intake.armIsDown()){
                 pivot.setStop();
                 pivot.resetEnc();
@@ -158,8 +140,8 @@ public class Hang {
     
             else{      
                 pivot.setPivInwardLim();
-                elevator.setElevatorRetractLim();
-                intake.setExtend();                  //keep intake down
+                elevator.setRetractLimFast();
+                intake.setExtend();                  
             }                                      
             break;
 
@@ -167,11 +149,12 @@ public class Hang {
             if(elevator.topLimitTouched() && pivot.afterOutwardEnc() && intake.extInsidePerimeter()){
                 pivot.setStop();
                 elevator.setElevatorStop();
+                intake.setArmStopMode();
                 timer.start();
                 setUpMidCount++;
             }
             else{
-                elevator.setElevatorExtendLim();
+                elevator.setExtendLimFast();
                 pivot.setPivOutward();
                 if(intake.extInsidePerimeter()){
                     intake.setArmStopMode();
@@ -184,8 +167,8 @@ public class Hang {
             break;
 
             case 2:                      //DELAY FOR DRIVERS TO DRIVE TO RUNG
-            if (timer.get() >= 3) {     //after five seconds, move on to the next case
-                timer.stop(); 
+            if (timer.get() >= 1.5) {     
+                timer.stop();   //after five seconds, move on to the next case
                 setUpMidCount++; 
             }
             break;  
@@ -196,13 +179,15 @@ public class Hang {
                 setUpMidCount++;
             } 
             else {
-                elevator.setRetract();                                  
+                elevator.setRetractLimFast();                                  
             }
             break; 
 
             case 4:                         //INWARD PIVOT UNTIL PIVOT LINES UP WITH RUNG
             if(pivot.beforeMidRange()){
                 pivot.setStop();
+                timer.reset();
+                timer.start();
                 setUpMidCount++;
             } 
             else{
@@ -210,17 +195,24 @@ public class Hang {
             }
             break;
 
-            case 5:                         //EXTEND ELEVATOR UNTIL PIVOT IS ON THE RUNG
+            case 5:
+            if (timer.get() >= 0.5) {     
+                timer.stop();   //after five seconds, move on to the next case
+                setUpMidCount++; 
+            }
+            break; 
+
+            case 6:                         //EXTEND ELEVATOR UNTIL PIVOT IS ON THE RUNG
             if(elevator.abovePivot()){            
                 elevator.setElevatorStop();
                 setUpMidCount++;
             }
             else{
-                elevator.setExtend();               
+                elevator.setExtendLimSlow();               
             }
             break;  
 
-            case 6:                         //RESETS TIMER FOR DELAY
+            case 7:                         //RESETS TIMER FOR DELAY
             timer.reset();  
             break; 
         }   
@@ -250,7 +242,7 @@ public class Hang {
                 setUpHighCount++; 
             } 
             else {
-                elevator.setElevatorExtendLim();
+                elevator.setExtendLimFast();
                 double pivotOutput = pivotPID.calculate(pivotEncoder.get(), 600);
                 pivot.manualPivot(pivotOutput);
             }
@@ -275,7 +267,7 @@ public class Hang {
             }
 
             else{
-                elevator.setElevatorRetractLim();
+                elevator.setRetractLimFast();
             }
             break;
 
@@ -298,7 +290,7 @@ public class Hang {
                 setUpHighGrabCount++;
             }
             else{
-                elevator.setExtend();;
+                elevator.setExtendLimSlow();
             }
             break;
 
@@ -327,7 +319,7 @@ public class Hang {
             }
 
             else{
-                elevator.setElevatorRetractLim();
+                elevator.setRetractLimFast();
             }
             break;
                                                             

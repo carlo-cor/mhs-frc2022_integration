@@ -23,7 +23,7 @@ public class Drive {
     }
 
     public void arcadeDrive(double dSpeed, double dRotation) {
-        differentialDrive.arcadeDrive(deadzone(dSpeed), deadzone(-dRotation)); 
+        differentialDrive.arcadeDrive(deadzone(-dSpeed), deadzone(dRotation)); 
     }
 
     public void arcadeRun(double dSpeed, double dRotation) {

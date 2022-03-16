@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.I2C.Port;
-import edu.wpi.first.wpilibj.simulation.DigitalPWMSim;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -82,7 +81,6 @@ public class Robot extends TimedRobot {
   private DigitalInput frontLSwitch;
   private DigitalInput backLSwitch;
   private WPI_VictorSPX weightAdjMotor;
-  //  private WPI_VictorSPX weightAdjMotor;
   private DigitalInput weightAdjChannel;
   private SingleChannelEncoder weightAdjEnc;
 
@@ -195,18 +193,18 @@ public class Robot extends TimedRobot {
     ///////////////////////////////////////////////////////////
 
     intakeBar = new WPI_TalonSRX(3);
-    intakeBar.setNeutralMode(NeutralMode.Brake);
-
-    intakeTimer = new Timer();
-
+    outerRollers = new WPI_VictorSPX(0);
     intakeExt = new WPI_VictorSPX(1);
-    intakeExt.setNeutralMode(NeutralMode.Brake);
+    intakeSensor = new DigitalInput(4);
     intakeExtChannel = new DigitalInput(5);
     intakeArmLim = new DigitalInput(6);
+    intakeTimer = new Timer();
     intakeExtEnc = new SingleChannelEncoder(intakeExt, intakeExtChannel);
-    outerRollers = new WPI_VictorSPX(0);
+
+    intakeBar.setNeutralMode(NeutralMode.Brake);
     outerRollers.setNeutralMode(NeutralMode.Brake);
-    intakeSensor = new DigitalInput(4);
+    intakeExt.setNeutralMode(NeutralMode.Brake);
+
 
     intakeObj = new Intake(intakeBar, intakeExt, outerRollers, intakeExtEnc, intakeSensor, intakeArmLim, intakeTimer);
 
@@ -215,10 +213,8 @@ public class Robot extends TimedRobot {
     ///////////////////////////////////////////////////////////
 
     elevMotor = new WPI_TalonFX(2);
-    elevMotor.setNeutralMode(NeutralMode.Brake);
     elevEnc = new TalonFXSensorCollection(elevMotor);
     pivotMotor = new WPI_TalonSRX(4);
-    pivotMotor.setNeutralMode(NeutralMode.Brake);
     pivotEnc = new TalonEncoder(pivotMotor);
     upperLSwitch = new DigitalInput(2);
     bottomLSwitch = new DigitalInput(1);
@@ -227,7 +223,10 @@ public class Robot extends TimedRobot {
     weightAdjMotor = new WPI_VictorSPX(5);
     weightAdjChannel = new DigitalInput(9); 
     weightAdjEnc = new SingleChannelEncoder(weightAdjMotor, weightAdjChannel);
-    gyro = new AHRS(Port.kMXP);
+    gyro = new AHRS(SPI.Port.kMXP);
+
+    elevMotor.setNeutralMode(NeutralMode.Brake);
+    pivotMotor.setNeutralMode(NeutralMode.Brake);
 
     hangPivotObj = new HangPivot(pivotMotor, pivotEnc, gyro, frontLSwitch, backLSwitch);
     hangElevObj = new HangElevator(elevMotor, upperLSwitch, bottomLSwitch, elevEnc);
@@ -239,9 +238,9 @@ public class Robot extends TimedRobot {
     ///////////////////////////////////////////////////////////
     
     shooterMotor = new WPI_TalonFX(1);
-
     limelightObj = new Limelight();
-    shooterObj = new Shooter(limelightObj, shooterMotor, driveObj);
+
+    shooterObj = new Shooter(limelightObj, shooterMotor);
 
     ///////////////////////////////////////////////////////////
     //                         JOYSTICKS                     //
@@ -302,6 +301,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    SmartDashboard.putNumber("BASE", relEnc.getPosition());
     if(mechJoy.getRawAxis(3) < 0){
       SmartDashboard.putString("MODE: ", "TESTING");
       
@@ -318,20 +318,12 @@ public class Robot extends TimedRobot {
         intakeObj.setArmStopMode();
       }
 
-      if(mechJoy.getRawButton(11)){
-        shooterObj.setTesting();
-        shooterObj.setManual(mechJoy.getY());
-      }
-      else{
-        shooterObj.setStop();
-      }
-
       if(mechJoy.getRawButton(3)){
-        hangElevObj.setElevatorExtendLim();
+        hangElevObj.setExtendLimSlow();
       }
 
       else if(mechJoy.getRawButton(4)){
-        hangElevObj.setElevatorRetractLim();
+        hangElevObj.setRetractLimSlow();
       }
 
       else{
@@ -350,7 +342,15 @@ public class Robot extends TimedRobot {
         hangPivotObj.setStop();
       }
       
-      if(mechJoy.getRawButton(7)){
+      if(mechJoy.getRawButton(11)){
+        shooterObj.setTesting();
+        shooterObj.setManual(mechJoy.getY());
+      }
+      else{
+        shooterObj.setStop();
+      }
+
+      if(mechJoy.getRawButton(12)){
         weightAdjObj.setWeightTest();
         weightAdjObj.manualWeight(mechJoy.getY());
       }
@@ -371,17 +371,17 @@ public class Robot extends TimedRobot {
       ///////////////////////////////////////////////////////////
       //                        DRIVE                          //
       ///////////////////////////////////////////////////////////
-      driveObj.arcadeDrive(-baseJoy.getX(), -baseJoy.getY());
+      driveObj.arcadeDrive(baseJoy.getX() + shooterObj.alignSpeed, baseJoy.getY() + shooterObj.getInRangeSpeed);
       //  driveObj.tankDrive(baseJoy.getY(), baseTwoJoy.getY());
       
       ///////////////////////////////////////////////////////////
       //                        LIMELIGHT                      //
       ///////////////////////////////////////////////////////////
 
-      if(baseJoy.getRawButton(9)){
+      if(baseJoy.getRawButton(7)){
         limelightObj.setDrivingMode();
       }
-      else if(baseJoy.getRawButton(10)){
+      else if(baseJoy.getRawButton(8)){
         limelightObj.setTrackingMode();
       }
 
@@ -401,25 +401,40 @@ public class Robot extends TimedRobot {
         hangObj.setHighHangGrab();
       }
 
-      else if(mechJoy.getRawButton(7)){
+      else if(mechJoy.getRawButton(9)){
         hangObj.setTesting();
-        hangPivotObj.setPivInwardLim();
+        hangPivotObj.setTesting();
+        hangPivotObj.manualPivot(mechJoy.getY());
       }
 
-      else if(mechJoy.getRawButton(8)){
+      else if(mechJoy.getRawButton(10)){
         hangObj.setTesting();
-        hangElevObj.setElevatorExtendLim();
+        hangElevObj.setExtendLimSlow();
+      }
+
+      else if(mechJoy.getRawButton(12)){
+        hangObj.setTesting();
+        hangElevObj.setRetractLimSlow();
       }
 
       else{
         hangObj.setNothing();
       }
 
+      if(baseJoy.getRawButton(10)){
+        weightAdjObj.setWeightUp();
+      }
+      else if(baseJoy.getRawButton(12)){
+        weightAdjObj.setWeightDown();
+      }
+
+      else{
+        weightAdjObj.setWeightStop();
+        
+      }
       ///////////////////////////////////////////////////////////
       //                        INTAKE                         //
       ///////////////////////////////////////////////////////////
-      
-    
 
       if(baseJoy.getRawButton(11)){
         intakeObj.setIntakeMode();
@@ -433,25 +448,36 @@ public class Robot extends TimedRobot {
         intakeObj.setOutakeMode();
       }
 
-      else if(baseJoy.getRawButton(2)){
+      else if(baseJoy.getRawButton(1)){
         intakeObj.setFeedingMode();
       }
       else{
-          intakeObj.setIntakeStopMode();
+        intakeObj.setIntakeStopMode();
       }
-      
 
       if (mechJoy.getRawButton(6)){
         intakeObj.setExtend();
       }
-      else if(mechJoy.getRawButton(9)){
+
+      else if(mechJoy.getRawButton(11)){
         intakeObj.setMidway();
       }
+
       else{
         if(!intakeObj.cargoCheck()){ 
           intakeObj.setMidway();
         }
+        
         else{
+          /*
+          if(baseJoy.getRawButton(11)){
+            intakeObj.setExtend();
+            intakeObj.setIntakeMode();
+          }
+          else{
+            intakeObj.setArmStopMode();
+          }
+          */
           intakeObj.setArmStopMode();
         }
       }
@@ -461,20 +487,18 @@ public class Robot extends TimedRobot {
       //                         SHOOTER                       //
       ///////////////////////////////////////////////////////////
       
-      if(baseJoy.getRawButton(1)){
-        //intakeObj.setMidway();
+      if(baseJoy.getRawButton(2)){  // 3 during comp
         //shooterObj.setLowHubShoot();  // 75% when testing 
+        //shooterObj.setUpperHubShoot();
         shooterObj.setTesting();
         shooterObj.setManual(0.6);
       }
       
-      else if(baseJoy.getRawButton(3)){
-        //intakeObj.setMidway();
-        shooterObj.setUpperHubShoot();
+      else if(baseJoy.getRawButton(3)){ // 1 during comp
+        shooterObj.setLowHubShoot();
       }
 
-      else if(baseJoy.getRawButton(4)){
-        //intakeObj.setMidway();
+      else if(baseJoy.getRawButton(5)){
         shooterObj.setLaunchPadShoot();
       }
       
@@ -486,7 +510,6 @@ public class Robot extends TimedRobot {
       //                         RUN                           //
       ///////////////////////////////////////////////////////////
 
-      hangElevObj.run();
       hangObj.run();
       intakeObj.intakeRun();
       shooterObj.run();
@@ -497,7 +520,7 @@ public class Robot extends TimedRobot {
     /** This function is called once when the robot is disabled. */
     @Override
     public void disabledInit() {
-
+      
     }
 
     /** This function is called periodically when disabled. */
@@ -517,6 +540,12 @@ public class Robot extends TimedRobot {
         SmartDashboard.putString("AUTONOMOUS: ", "TWO BALL A");
         autonObj.setTwoBallA();
       }
+
+      /*
+      else if(baseJoy.getRawButton(11)){
+        SmartDashboard.putString("AUTONOMOUS: ", " TWO BALL B");
+      }
+      */
 
       else if(baseJoy.getRawButton(9)){
         SmartDashboard.putString("AUTONOMOUS: ", "THREE BALL HIGH");
@@ -539,12 +568,15 @@ public class Robot extends TimedRobot {
   /** This function is called once when test mode is enabled. */
   @Override
   public void testInit() {
-
+    shooterObj.displayValues();
+    intakeObj.displayMethod();
+    hangObj.setNothing();
+    hangObj.run();
   }
 
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {
-    
+
   }
 }

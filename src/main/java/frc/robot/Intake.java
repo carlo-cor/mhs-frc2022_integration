@@ -19,7 +19,7 @@ public class Intake {
 
     //SENSOR VALUES:
     private double holdDelay = 0.08;             // the delay time (TEST) 
-    private double extEncUp = -190;               // encoder for the extension going up (TEST) //-197 //-193 //-197'
+    private double extEncUp = -190;              // encoder for the extension going up (TEST) //-197 //-193 //-197'
     private double extEncMidWay = -90;
     private double extEncDown = 190;            // encoder for the extension going down(TEST) //192 //199 //186
     private double insideRobotPerimeter = -140; // Encoder count for bringing the arm extension to the point where it is inside the robot perimeter
@@ -30,7 +30,7 @@ public class Intake {
     private double outtakeSpeed = 1;          // the speed of the motor outtaking
     
     private double intakeExtSpeed = 1;        // speed for intake extension (TEST)
-    private double intakeRetractSpeed = 0.5;  // speed for intake extensin when it retracts 
+    private double intakeRetractSpeed = 0.55;  // speed for intake extensin when it retracts 
     private double outerRollerSpeed = 1;      // the speed of the outerRoller motor (TEST)
 
     //COUNTERS:
@@ -234,40 +234,6 @@ public class Intake {
         SmartDashboard.putNumber("Case statement counter", counter);
         SmartDashboard.putBoolean("Arm is down", armIsDown());
     }
-
-   /* public void run(){
-        displayMethod();
-        switch(mode){
-            case INTAKING:          //sets intake to intaking stage
-            intaking();
-            break; 
-            case RETRACT:           //sets intake to retract
-            retract(intakeRetractSpeed);
-            break;
-            case EXTEND:            //sets intake to extend
-            extend(intakeExtSpeed);
-            break;
-            case MIDWAY:
-            midway(intakeRetractSpeed); //sets intake to retract midway
-            break;
-            case OUTTAKING:         //sets intake to outtaking stage
-            setOuttakeSpeed(outtakeSpeed, outerRollerSpeed);
-            break;
-            case FEEDING:           //sets intake to feeding stage
-            feeding();
-            break;
-            case OVERRIDE:          //overrides sensor
-            setIntakeSpeed(intakeSpeed, outerRollerSpeed);
-            break;
-            case STOP:              //sets all motors to stop stage
-            stopBarAndRolllers();
-            stopIntakeExt();
-            break;
-            case TESTING:           //sets to testing stage
-            break;
-        }
-    }
-    */
 
     public void intakeRun(){
         displayMethod();

@@ -141,7 +141,7 @@ public class WeightAdjuster {
         switch(weightShifterState){
 
             case UP:
-            weightUp();
+            weightUpElevDown();
             break;
 
             case DOWN:

@@ -134,17 +134,20 @@ public class Autonomous {
             break;
 
             case 1:     //rev shooter a& bring intake down
-                if(shooter.checkRPM() && intake.armIsDown()){
+                if(shooter.checkRPM() && intake.armIsDown() && shooter.checkAligned() && shooter.checkInRange()){
+                    drive.arcadeRun(0, 0);
+                    encoder.setPosition(0);
                     oneBallCounter++;
                 }
                 else{
                     //DELETE LATER:
                     shooter.setTesting();
-                    shooter.setManual(0.4);
+                    shooter.setManual(0.6);
                     //
                     
                     //shooter.setUpperHubShoot
                     intake.setExtend();
+                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }
             break;
 
@@ -189,17 +192,20 @@ public class Autonomous {
             break;
 
             case 1:     //rev the shooter & bring arm down                         
-                if(shooter.checkRPM() && intake.armIsDown()){
+                if(shooter.checkRPM() && intake.armIsDown() && shooter.checkAligned() && shooter.checkInRange()){
+                    drive.arcadeRun(0, 0);
+                    encoder.setPosition(0);
                     twoBallACounter++;
                 }
                 else{
                     //DELETE LATER:
                     shooter.setTesting();
-                    shooter.setManual(0.4);
+                    shooter.setManual(0.6);
                     //
                     
                     //shooter.setUpperHubShoot();
-                    intake.setExtend();;
+                    intake.setExtend();
+                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }      
             break;
                 
@@ -271,16 +277,19 @@ public class Autonomous {
             break; 
 
             case 7:     //rev the shooter
-                if(shooter.checkRPM()){
+                if(shooter.checkRPM() && shooter.checkAligned() && shooter.checkInRange()){
+                    drive.arcadeRun(0, 0);
+                    encoder.setPosition(0);
                     twoBallACounter++;
                 }
                 else{
                     //DELETE LATER:
                     shooter.setTesting();
-                    shooter.setManual(0.4);
+                    shooter.setManual(0.6);
                     //
 
                     //shooter.setUpperHubShoot();
+                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }
             break;
 
@@ -319,128 +328,9 @@ public class Autonomous {
         }
     }
 
-    private void twoBallB(){
+    private void twoBallB(){           //USES PORTION OF THE THREE BALL *HIGH* METHOD
         switch(twoBallBCounter){
-            case 0: 
-                if (Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(1.225)) {
-                    drive.tankRun(0, 0); 
-                    encoder.setPosition(0); 
-                    twoBallBCounter++; 
-                } else {
-                    drive.tankRun(-0.6, -0.6); 
-                }
-            break; 
-
-            case 1:
-                if(shooter.checkRPM() && intake.armIsDown()){                 //shoot preload into low hub
-                    twoBallBCounter++;
-                }
-
-                else{
-                    //DELETE LATER:
-                    shooter.setTesting();
-                    shooter.setManual(0.4);
-                    //
-
-                    intake.setExtend();
-                    //shooter.setLowHubShoot();
-                }
-            break;
-
-            case 2:
-                if(intake.cargoCheck()){
-                    intake.setIntakeStopMode();
-                    shooter.setStop();
-                    twoBallBCounter++;
-                }
-
-                else{
-                    intake.setFeedingMode();
-                }
-            break;
-
-            case 3:                                                 //turn right to ball by the wall
-                if(gyro.getYaw() < 140 && gyro.getYaw() > 135){
-                    drive.tankRun(0, 0);
-                    encoder.setPosition(0);
-                    twoBallBCounter++;
-                }
-
-                else{
-                    if(gyro.getYaw() < 135){
-                        drive.tankRun(0.6, -0.6);
-                    }
-                    else if(gyro.getYaw() > 140){
-                        drive.tankRun(-0.6, 0.6);
-                    }
-                }
-            break;
-
-            case 4:                                                   //forward and intake 2nd ball
-                if(!intake.cargoCheck() || Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(6)){       
-                    drive.tankRun(0, 0);
-                    encoder.setPosition(0);
-                    twoBallBCounter++;
-                }
-                else{
-                    intake.setIntakeMode();
-                    drive.tankRun(0.65, 0.65);
-                }
-            break;
-
-            case 5:
-                if(Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(1.5)){           //back up a foot and a half so you dont hit the wall when you turn around
-                    drive.tankRun(0, 0);
-                    encoder.setPosition(0);
-                    gyro.reset();
-                    twoBallBCounter++;
-                }
-                else{
-                    drive.tankRun(-0.6, -0.6);
-                }
-            break;                                                                  //reset gyro here and we should know what the gyro needs to be for the third ball
-
-            case 6:
-                if(gyro.getYaw() > -155f && gyro.getYaw() < -150){                              //turn left to face hub
-                    drive.tankRun(0, 0);   
-                    encoder.setPosition(0);
-                    twoBallBCounter++;
-                }
-                else{
-                    
-                    if(gyro.getYaw() > -145){
-                        drive.tankRun(-0.6, 0.6);
-                    }
-                    else if(gyro.getYaw() < -150){
-                        drive.tankRun(0.6, -0.6);
-                    }
-                }
-            break;
-
-            case 7:                                                              //rev the shooter                         
-                if(shooter.checkRPM()){
-                    twoBallBCounter++;
-                }
-                else{
-                    //DELETE LATER:
-                        shooter.setTesting();
-                        shooter.setManual(0.4);
-                    //
-
-                    //shooter.setUpperHubShoot();
-                }      
-            break;
             
-            case 8:                                                                              //shoot the 2nd ball
-                if(intake.cargoCheck()){
-                    shooter.setStop();
-                    intake.setIntakeStopMode();
-                    twoBallBCounter++;
-                }
-                else{
-                    intake.setFeedingMode();
-                }
-            break;
         }
     }
 
@@ -458,18 +348,21 @@ public class Autonomous {
             break; 
 
             case 1:
-                if(shooter.checkRPM() && intake.armIsDown()){                 //shoot preload into low hub
+                if(shooter.checkRPM() && intake.armIsDown() && shooter.checkAligned() && shooter.checkInRange()){                 //shoot preload into low hub
+                    drive.arcadeRun(0, 0);
+                    encoder.setPosition(0);
                     threeBallLowCounter++;
                 }
 
                 else{
                     //DELETE LATER:
                     shooter.setTesting();
-                    shooter.setManual(0.4);
+                    shooter.setManual(0.6);
                     //
 
                     intake.setExtend();
                     //shooter.setLowHubShoot();
+                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }
             break;
 
@@ -544,16 +437,19 @@ public class Autonomous {
             break;
 
             case 7:                                                              //rev the shooter                         
-                if(shooter.checkRPM()){
+                if(shooter.checkRPM() && shooter.checkAligned() && shooter.checkInRange()){
+                    drive.arcadeRun(0, 0);
+                    encoder.setPosition(0);
                     threeBallLowCounter++;
                 }
                 else{
                     //DELETE LATER:
                         shooter.setTesting();
-                        shooter.setManual(0.4);
+                        shooter.setManual(0.6);
                     //
 
                     //shooter.setUpperHubShoot();
+                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }      
             break;
             
@@ -613,16 +509,19 @@ public class Autonomous {
             break;
 
             case 12:                                                              //rev the shooter                         
-                if(shooter.checkRPM()){
+                if(shooter.checkRPM() && shooter.checkAligned() && shooter.checkInRange()){
+                    drive.arcadeRun(0, 0);
+                    encoder.setPosition(0);
                     threeBallLowCounter++;
                 }
                 else{
                     //DELETE LATER
                     shooter.setTesting();
-                    shooter.setManual(0.4);
+                    shooter.setManual(0.6);
                     //
 
                     //shooter.setUpperHubShoot();
+                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }      
             break;
             
@@ -661,18 +560,21 @@ public class Autonomous {
             break; 
 
             case 1:
-                if(shooter.checkRPM() && intake.armIsDown()){                 //shoot preload into high hub
+                if(shooter.checkRPM() && intake.armIsDown() && shooter.checkAligned() && shooter.checkInRange()){                 //shoot preload into high hub
+                    drive.arcadeRun(0, 0);
+                    encoder.setPosition(0);
                     threeBallHighCounter++;
                 }
 
                 else{
                     //DELETE LATER:
                     shooter.setTesting();
-                    shooter.setManual(0.4);
+                    shooter.setManual(0.6);
                     //
 
                     intake.setExtend();
                     //shooter.setUpperHubShoot();
+                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }
             break;
 
@@ -744,15 +646,18 @@ public class Autonomous {
                 }
             break;
             case 7:                                                              //rev the shooter                         
-                if(shooter.checkRPM()){
+                if(shooter.checkRPM() && shooter.checkAligned() && shooter.checkInRange()){
+                    drive.arcadeRun(0, 0);
+                    encoder.setPosition(0);
                     threeBallHighCounter++;
                 }
                 else{
                     //DELETE LATER:
                         shooter.setTesting();
-                        shooter.setManual(0.4);
+                        shooter.setManual(0.6);
                     //
                     //shooter.setUpperHubShoot();
+                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }      
             break;
             
@@ -808,15 +713,18 @@ public class Autonomous {
                 }
             break;
             case 12:                                                              //rev the shooter                         
-                if(shooter.checkRPM()){
+                if(shooter.checkRPM() && shooter.checkAligned() && shooter.checkInRange()){
+                    drive.arcadeRun(0, 0);
+                    encoder.setPosition(0);
                     threeBallHighCounter++;
                 }
                 else{
                     //DELETE LATER
                     shooter.setTesting();
-                    shooter.setManual(0.4);
+                    shooter.setManual(0.6);
                     //
                     //shooter.setUpperHubShoot();
+                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }      
             break;
             
