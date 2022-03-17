@@ -132,6 +132,7 @@ public class Hang {
             if(pivot.frontLimitTouched() && elevator.bottomLimitTouched() && intake.armIsDown()){
                 pivot.setStop();
                 pivot.resetEnc();
+                weightAdjuster.resetEncoder();
                 elevator.setElevatorStop();
                 elevator.encoderReset();
                 intake.setArmStopMode();
@@ -146,20 +147,26 @@ public class Hang {
             break;
 
             case 1:                     //EXTEND ELEV AND PIVOT FOR SETUP POS.
-            if(elevator.topLimitTouched() && pivot.afterOutwardEnc() && intake.extInsidePerimeter()){
+            if(elevator.topLimitTouched() && pivot.afterOutwardEnc() && intake.extInsidePerimeter() && !weightAdjuster.beforeDownLim()){
                 pivot.setStop();
                 elevator.setElevatorStop();
                 intake.setArmStopMode();
+                weightAdjuster.setWeightStop();
                 timer.start();
                 setUpMidCount++;
             }
             else{
                 elevator.setExtendLimFast();
-                pivot.setPivOutward();
+                weightAdjuster.setWeightDown();
+                if(pivot.afterOutwardEnc()){
+                    pivot.setStop();
+                }
+                else{
+                    pivot.setPivOutward();
+                }
                 if(intake.extInsidePerimeter()){
                     intake.setArmStopMode();
                 }
-
                 else{
                     intake.setRetract();
                 }
@@ -263,10 +270,19 @@ public class Hang {
             //RETRACT FULLY SO PIVOT CAN LET GO
             if(elevator.bottomLimitTouched()){
                 elevator.setElevatorStop();
+                //pivot.setStop();        
                 setUpHighGrabCount++;
             }
-
             else{
+                /*if(elevator.startPivotingInward()){
+                    if(pivot.frontLimitTouched()){
+                        pivot.setStop();
+                    }
+                    else{
+                        pivot.setTesting();
+                        pivot.manualPivot(-0.1);
+                    }
+                }*/
                 elevator.setRetractLimFast();
             }
             break;
@@ -329,6 +345,7 @@ public class Hang {
     private void stop(){        //STOPS ELEVATOR AND PIVOT
         elevator.setElevatorStop();
         pivot.setStop();
+        weightAdjuster.setWeightStop(); //JUST ADDED
     }
 
     /////////////////////////////////////////////

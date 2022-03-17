@@ -767,7 +767,7 @@ public class Autonomous {
             break;
 
             case TWOBALLB:
-                twoBallB();;
+                twoBallB();
             break;
 
             case THREEBALLLOW:

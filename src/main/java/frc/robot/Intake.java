@@ -225,7 +225,7 @@ public class Intake {
     public void displayMethod(){
         
         SmartDashboard.putBoolean("Intake Sensor", cargoCheck());   // displays if the sensor is being triggered
-        SmartDashboard.putString(" Intake mode", intakeMode.toString());          // displays the current state of the intake
+        SmartDashboard.putString(" Intake mode", armMode.toString());          // displays the current state of the intake
         SmartDashboard.putString("Arm mode", armMode.toString());
         SmartDashboard.putNumber("Timer", timer.get());             // displays the time to the timer
         SmartDashboard.putNumber("Encoder for intake extension", intakeExtEnc.get());    // displays the encoder count
