@@ -2,6 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.Timer;
 
 public class WeightAdjuster {
 
@@ -16,15 +17,18 @@ public class WeightAdjuster {
     private SingleChannelEncoder weightEncoder;
 
     private double weightSpeedUp = 0.35;               //speed going up
-    private double weightSpeedDown = -0.35;            //speed going down
+    private double weightSpeedDown = -0.35;            //speed going down -0.35
 
     private double weightMaxUp = 48;            //encoder count for the most up it can be
-    private double weightMaxDown = -59;          //encoder count for the farthest down it can be
+    private double weightMaxDown = -49;          //encoder count for the farthest down it can be
+    //USED TO BE -59
 
+    private Timer weightTimer; 
 
     public WeightAdjuster(MotorController WeightShifter, SingleChannelEncoder shifterEnc){
         weightAdjuster = WeightShifter;
         weightEncoder = shifterEnc;
+        weightTimer = new Timer();
     }
 
     private enum States{
@@ -59,7 +63,7 @@ public class WeightAdjuster {
     }
 
     public boolean beforeDownLim() {
-        return weightEncoder.get() >= (weightMaxDown); 
+        return ((weightEncoder.get() >= weightMaxDown) && (weightTimer.get() < 4.0)); 
     }
 
     private boolean beforeHomeLim() {
@@ -76,7 +80,7 @@ public class WeightAdjuster {
 
     //METHODS
     private void weightUp(){        
-        if(beforeUpLim()){     //when the encoder is less than the encoder limit (max UP position), go up
+        if(beforeUpLim()){     //when the encoder is greater than the encoder limit (max UP position), go up
             weightAdjuster.set(weightSpeedUp);
         }
 
@@ -94,12 +98,14 @@ public class WeightAdjuster {
     }
 
     private void weightDown(){
-        if(beforeDownLim()){       //when the encoder is more than the encoder limit (max DOWN position), go down
+        weightTimer.start();
+        if(beforeDownLim()){       
         weightAdjuster.set(weightSpeedDown);
         }
 
         else{
             weightAdjuster.set(0);
+            weightTimer.stop();
         }
     }
 
@@ -119,6 +125,7 @@ public class WeightAdjuster {
 
     private void stop(){
         weightAdjuster.set(0);
+        weightTimer.stop();
     }
 
     public void manualWeight(double speed){     //manually control the weight adjuster
@@ -127,6 +134,10 @@ public class WeightAdjuster {
 
     public void resetEncoder(){
         weightEncoder.reset();
+    }
+
+    public void resetTimer(){          //USE THIS IN HANG CLASS FOR RESETTING TIMER
+        weightTimer.reset();
     }
 
     public void testing (){
@@ -142,6 +153,7 @@ public class WeightAdjuster {
         SmartDashboard.putBoolean("BEFORE HOME LIM", beforeHomeLim()); 
         SmartDashboard.putBoolean("AFTER HOME LIM", afterHomeLim()); 
         SmartDashboard.putString("WEIGHT STATE", weightShifterState.toString()); 
+        SmartDashboard.putNumber("WEIGHT ADJ TIMER", weightTimer.get());
         
         switch(weightShifterState){
 

@@ -200,7 +200,7 @@ public class Robot extends TimedRobot {
     outerRollers.setNeutralMode(NeutralMode.Brake);
     intakeExt.setNeutralMode(NeutralMode.Brake);
 
-    intakeObj = new Intake(intakeBar, intakeExt, outerRollers, intakeExtEnc, intakeSensor, intakeArmLim, intakeTimer);
+    intakeObj = new Intake(intakeBar, intakeExt, outerRollers, intakeExtEnc, intakeSensor, intakeArmLim);
 
     ///////////////////////////////////////////////////////////
     //                         HANG                          //
@@ -374,7 +374,6 @@ public class Robot extends TimedRobot {
     }
 
     else if(mechJoy.getRawAxis(3) > 0){
-      SmartDashboard.putNumber("MATCH TIME: ", DriverStation.getMatchTime());
       SmartDashboard.putString("MODE: ", "HYPE");
       ///////////////////////////////////////////////////////////
       //                        DRIVE                          //
@@ -467,7 +466,8 @@ public class Robot extends TimedRobot {
       ///////////////////////////////////////////////////////////
       //                        INTAKE                         //
       ///////////////////////////////////////////////////////////
-
+      
+      /*
       if(baseJoy.getRawButton(11)){
         intakeObj.setIntakeMode();
       }
@@ -504,7 +504,46 @@ public class Robot extends TimedRobot {
           intakeObj.setArmStopMode();
         }
       }
+      */
+      
+      if(baseJoy.getPOV() == 180){
+        intakeObj.setOverrideMode();
+        intakeObj.setArmOverride();
+      }
 
+      else{
+        if(baseJoy.getRawButton(11)){
+          intakeObj.setIntakeMode();
+        }
+  
+        else if(baseJoy.getPOV() == 0){
+          intakeObj.setOutakeMode();
+        }
+  
+        else if(baseJoy.getRawButton(1)){
+          intakeObj.setFeedingMode();
+        }
+        else{
+          intakeObj.setIntakeStopMode();
+        }
+  
+        if (mechJoy.getRawButton(6)){
+          intakeObj.setExtend();
+        }
+  
+        else if(mechJoy.getRawButton(11)){
+          intakeObj.setMidway();
+        }
+  
+        else{
+          if(!intakeObj.cargoCheck()){
+            intakeObj.setMidway();
+          }
+          else{
+            intakeObj.setArmStopMode();
+          }
+        }
+      }
       
       ///////////////////////////////////////////////////////////
       //                         SHOOTER                       //
@@ -560,15 +599,14 @@ public class Robot extends TimedRobot {
       }
 
       else if(baseJoy.getRawButton(11)){
-        SmartDashboard.putString("AUTONOMOUS: ", "TWO BALL A");
-        autonObj.setTwoBallA();
+        SmartDashboard.putString("AUTONOMOUS: ", "TWO BALL LEFT");
+        autonObj.setTwoBallLeft();
       }
 
-      /*
       else if(baseJoy.getRawButton(12)){
-        SmartDashboard.putString("AUTONOMOUS: ", " TWO BALL B");
+        SmartDashboard.putString("AUTONOMOUS: ", " TWO BALL RIGHT");
+        autonObj.setTwoBallTRight();
       }
-      */
 
       else if(baseJoy.getRawButton(9)){
         SmartDashboard.putString("AUTONOMOUS: ", "THREE BALL HIGH");
@@ -593,6 +631,8 @@ public class Robot extends TimedRobot {
   public void testInit() {
     autonObj.display();
     shooterObj.displayValues();
+    shooterObj.setStop();
+    shooterObj.run();
     intakeObj.displayMethod();
     hangObj.setNothing();
     hangObj.run();

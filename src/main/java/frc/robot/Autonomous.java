@@ -21,8 +21,8 @@ public class Autonomous {
 
     //COUNTER VARIABLES:
     private int oneBallCounter = 0;
-    private int twoBallACounter = 0;
-    private int twoBallBCounter = 0;
+    private int twoBallLeftCounter = 0;
+    private int twoBallRightCounter = 0;
     private int threeBallHighCounter = 0;
     private int threeBallLowCounter = 0;
 
@@ -40,7 +40,7 @@ public class Autonomous {
     }
 
     private enum routines{
-        NOTHING, ONEBALL, TWOBALLA, TWOBALLB, THREEBALLLOW, THREEBALLHIGH 
+        NOTHING, ONEBALL, TWOBALL_L, TWOBALL_R, THREEBALLLOW, THREEBALLHIGH 
     }
 
     private routines routineState = routines.NOTHING;
@@ -53,12 +53,12 @@ public class Autonomous {
         routineState = routines.ONEBALL;
     }
 
-    public void setTwoBallA(){
-        routineState = routines.TWOBALLA;
+    public void setTwoBallLeft(){
+        routineState = routines.TWOBALL_L;
     }
 
-    public void setTwoBallB(){
-        routineState = routines.TWOBALLB;
+    public void setTwoBallTRight(){
+        routineState = routines.TWOBALL_R;
     }
     
     public void setThreeBallLow(){
@@ -78,8 +78,8 @@ public class Autonomous {
 
         //ROUTINE COUNTERS:
         SmartDashboard.putNumber("One Ball Counter", oneBallCounter);
-        SmartDashboard.putNumber("Two Ball A Counter", twoBallACounter);
-        SmartDashboard.putNumber("Two Ball B Counter", twoBallBCounter);
+        SmartDashboard.putNumber("Two Ball A Counter", twoBallLeftCounter);
+        SmartDashboard.putNumber("Two Ball B Counter", twoBallRightCounter);
         SmartDashboard.putNumber("Three Ball High Counter", threeBallHighCounter);
         SmartDashboard.putNumber("Three Ball Low Counter", threeBallLowCounter);
     }
@@ -101,8 +101,8 @@ public class Autonomous {
         gyro.reset();
     
         oneBallCounter = 0;
-        twoBallACounter = 0;
-        twoBallBCounter = 0;
+        twoBallLeftCounter = 0;
+        twoBallRightCounter = 0;
         threeBallLowCounter = 0;
         threeBallHighCounter = 0;
     }
@@ -121,7 +121,6 @@ public class Autonomous {
     private void oneBall(){
         switch(oneBallCounter){
 
-
             case 0:     //taxi off tarmac
                 if(Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(4)){
                     drive.tankRun(0, 0);
@@ -133,7 +132,7 @@ public class Autonomous {
                 }
             break;
 
-            case 1:     //rev shooter a& bring intake down
+            case 1:     //rev shooter, bring intake down, and align with upper hub
                 if(shooter.checkRPM() && intake.armIsDown() && shooter.checkAligned() && shooter.checkInRange()){
                     drive.arcadeRun(0, 0);
                     encoder.setPosition(0);
@@ -145,7 +144,7 @@ public class Autonomous {
                     shooter.setManual(0.6);
                     //
                     
-                    //shooter.setUpperHubShoot
+                    //shooter.setUpperHubShoot();
                     intake.setExtend();
                     drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }
@@ -171,20 +170,18 @@ public class Autonomous {
                 else{
                     intake.setMidway();
                 }
-
-
         }
     }
 
     //Routine to taxi, shoot preload into upper hub, intake ball to the right, and shoot that ball into the upper hub
-    private void twoBallA(){
-        switch(twoBallACounter){
+    private void twoBallLeft(){
+        switch(twoBallLeftCounter){ 
 
             case 0:     //taxi off tarmac
                 if(Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(7)){
                     drive.tankRun(0, 0);
                     encoder.setPosition(0);
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
                 else{
                     drive.tankRun(-0.6, -0.6);
@@ -195,7 +192,7 @@ public class Autonomous {
                 if(shooter.checkRPM() && intake.armIsDown() && shooter.checkAligned() && shooter.checkInRange()){
                     drive.arcadeRun(0, 0);
                     encoder.setPosition(0);
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
                 else{
                     //DELETE LATER:
@@ -213,7 +210,7 @@ public class Autonomous {
                 if(intake.cargoCheck()){
                     shooter.setStop();
                     intake.setIntakeStopMode();
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
                 else{
                     intake.setFeedingMode();
@@ -224,7 +221,7 @@ public class Autonomous {
                 if(gyro.getYaw() > 48f && gyro.getYaw() < 53f ){
                     drive.tankRun(0, 0);   
                     encoder.setPosition(0);
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
                 else{
                     if(gyro.getYaw() < 48){
@@ -240,7 +237,7 @@ public class Autonomous {
                 if(!intake.cargoCheck() || encoder.getPosition() >= convertFeetToEncoderCounts(5)){
                     drive.tankRun(0, 0);
                     intake.setIntakeStopMode();
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
                 else{
                     intake.setIntakeMode();
@@ -252,11 +249,11 @@ public class Autonomous {
                 if(encoder.getPosition() <= 1 && encoder.getPosition() >= -1){
                     drive.tankRun(0, 0);
                     encoder.setPosition(0);
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
                 else{
                     drive.tankRun(-0.5, -0.5);
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
             break;
 
@@ -264,7 +261,7 @@ public class Autonomous {
                 if(gyro.getYaw() < 3 && gyro.getYaw() > -3){
                     drive.tankRun(0, 0);
                     encoder.setPosition(0);
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
                 else{
                     if(gyro.getYaw() > 3){
@@ -280,7 +277,7 @@ public class Autonomous {
                 if(shooter.checkRPM() && shooter.checkAligned() && shooter.checkInRange()){
                     drive.arcadeRun(0, 0);
                     encoder.setPosition(0);
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
                 else{
                     //DELETE LATER:
@@ -297,7 +294,7 @@ public class Autonomous {
                 if(timer.get() >= 1){
                     timer.stop();
                     timer.reset();
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
                 else{
                     timer.start();
@@ -309,7 +306,7 @@ public class Autonomous {
                 if(intake.cargoCheck()){
                     shooter.setStop();
                     intake.setIntakeStopMode();
-                    twoBallACounter++;
+                    twoBallLeftCounter++;
                 }
                 else{
                     intake.setFeedingMode();   
@@ -319,6 +316,7 @@ public class Autonomous {
             case 10:
                 if(intake.atMidway()){
                     intake.setArmStopMode();
+                    twoBallLeftCounter++;
                 }
 
                 else{
@@ -328,8 +326,8 @@ public class Autonomous {
         }
     }
 
-    private void twoBallB(){           //USES PORTION OF THE THREE BALL *HIGH* METHOD
-        switch(twoBallBCounter){
+    private void twoBallRight(){           //USES PORTION OF THE THREE BALL *HIGH* METHOD
+        switch(twoBallRightCounter){
             
         }
     }
@@ -348,21 +346,18 @@ public class Autonomous {
             break; 
 
             case 1:
-                if(shooter.checkRPM() && intake.armIsDown() && shooter.checkAligned() && shooter.checkInRange()){                 //shoot preload into low hub
-                    drive.arcadeRun(0, 0);
-                    encoder.setPosition(0);
+                if(shooter.checkRPM() && intake.armIsDown()){                 //shoot preload into low hub
                     threeBallLowCounter++;
                 }
 
                 else{
                     //DELETE LATER:
-                    shooter.setTesting();
-                    shooter.setManual(0.6);
+                    //shooter.setTesting();
+                    //shooter.setManual(0.6);
                     //
 
                     intake.setExtend();
-                    //shooter.setLowHubShoot();
-                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
+                    shooter.setLowHubShoot();
                 }
             break;
 
@@ -379,26 +374,30 @@ public class Autonomous {
             break;
 
             case 3:                                                 //turn right to ball by the wall
-                if(gyro.getYaw() < 140 && gyro.getYaw() > 135){
+                if(gyro.getYaw() < 142 && gyro.getYaw() > 139){
                     drive.tankRun(0, 0);
                     encoder.setPosition(0);
                     threeBallLowCounter++;
                 }
 
                 else{
-                    if(gyro.getYaw() < 135){
-                        drive.tankRun(0.6, -0.6);
+                    //drive.tankRun(0.55, -0.55);
+                    
+                    if(gyro.getYaw() > 142){
+                        drive.tankRun(-0.35, 0.35);
                     }
-                    else if(gyro.getYaw() > 140){
-                        drive.tankRun(-0.6, 0.6);
+                    else if(gyro.getYaw() < 139){
+                        drive.tankRun(0.55, -0.55);
                     }
+                    
                 }
             break;
 
             case 4:                                                   //forward and intake 2nd ball
-                if(!intake.cargoCheck() || Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(6)){       
+                if(!intake.cargoCheck() || Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(6.25)){       
                     drive.tankRun(0, 0);
                     encoder.setPosition(0);
+                    gyro.reset();
                     threeBallLowCounter++;
                 }
                 else{
@@ -408,16 +407,15 @@ public class Autonomous {
             break;
 
             case 5:
-                if(Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(1.5)){           //back up a foot and a half so you dont hit the wall when you turn around
+                if(Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(0.8)){           //back up a foot and a half so you dont hit the wall when you turn around
                     drive.tankRun(0, 0);
                     encoder.setPosition(0);
-                    gyro.reset();
                     threeBallLowCounter++;
                 }
                 else{
                     drive.tankRun(-0.6, -0.6);
                 }
-            break;                                                                  //reset gyro here and we should know what the gyro needs to be for the third ball
+            break;                                                                  
 
             case 6:
                 if(gyro.getYaw() > -155f && gyro.getYaw() < -150){                              //turn left to face hub
@@ -427,11 +425,11 @@ public class Autonomous {
                 }
                 else{
                     
-                    if(gyro.getYaw() > -145){
-                        drive.tankRun(-0.6, 0.6);
+                    if(gyro.getYaw() > -150){
+                        drive.tankRun(-0.75, 0.75);
                     }
-                    else if(gyro.getYaw() < -150){
-                        drive.tankRun(0.6, -0.6);
+                    else if(gyro.getYaw() < -155){
+                        drive.tankRun(0.75, -0.75);
                     }
                 }
             break;
@@ -449,7 +447,7 @@ public class Autonomous {
                     //
 
                     //shooter.setUpperHubShoot();
-                    drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
+                    drive.arcadeRun(shooter.alignSpeed, 0);
                 }      
             break;
             
@@ -465,30 +463,33 @@ public class Autonomous {
             break;                                                                                  //gyro at -7.6
 
             case 9:                                                                                 //gyro to -100
-                if(gyro.getYaw() > 120f && gyro.getYaw() < 125f){                              //turn left to face third ball   [CONSIDER MAKING THIS FASTER!]
+                if(gyro.getYaw() > 112f && gyro.getYaw() < 114f){                              //turn left to face third ball   [CONSIDER MAKING THIS FASTER!]
                     drive.tankRun(0, 0);   
                     encoder.setPosition(0);
                     threeBallLowCounter++;
                 }
                 else{
-                    if(gyro.getYaw() > 125f || gyro.getYaw() < 0){
-                        drive.tankRun(-0.6, 0.6);
+                    //drive.tankRun(-0.45, 0.45);
+                    
+                    if(gyro.getYaw() > 114f || gyro.getYaw() < 0){
+                        drive.tankRun(-0.45, 0.45);
                     }
-                    else if(gyro.getYaw() < 120){
-                        drive.tankRun(0.6, -0.6);
+                    else if(gyro.getYaw() < 112f){
+                        drive.tankRun(0.35, -0.35);
                     }
+                    
                 }
             break;
 
             case 10:                                                                 //foward and intake 3rd ball
-                if(!intake.cargoCheck() || Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(8.83)){                                       //start: 2 - end: 94
+                if(!intake.cargoCheck() || Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(9)){                                       //start: 2 - end: 94
                     drive.tankRun(0, 0);
                     intake.setIntakeStopMode();
                     threeBallLowCounter++;
                 }
                 else{
                     intake.setIntakeMode();
-                    drive.tankRun(0.8, 0.8);
+                    drive.tankRun(0.9, 0.9);
                 }
             break;
 
@@ -499,11 +500,11 @@ public class Autonomous {
                     threeBallLowCounter++;
                 }
                 else{
-                    if(gyro.getYaw() > -130f){
-                        drive.tankRun(0.6, -0.6);
+                    if(gyro.getYaw() > -130f && gyro.getYaw() < 0){
+                        drive.tankRun(-0.75, 0.75);
                     }
-                    else if(gyro.getYaw() < -135f){
-                        drive.tankRun(0.6, -0.6);
+                    else if(gyro.getYaw() < -135f || gyro.getYaw() > 0){
+                        drive.tankRun(0.75, -0.75);
                     }
                 }
             break;
@@ -524,8 +525,20 @@ public class Autonomous {
                     drive.arcadeRun(shooter.alignSpeed, shooter.getInRangeSpeed);
                 }      
             break;
-            
-            case 13:                                                                              //shoot the 3rd ball
+
+            case 13:
+                if(timer.get() >= 1){
+                    timer.stop();
+                    timer.reset();
+                    threeBallLowCounter++;
+                }
+                else{
+                    timer.start();
+                    intake.setOverrideMode();
+                }
+            break;
+
+            case 14:                                                                              //shoot the 3rd ball
                 if(intake.cargoCheck()){
                     shooter.setStop();
                     intake.setIntakeStopMode();
@@ -536,9 +549,10 @@ public class Autonomous {
                 }
             break;
 
-            case 14:
+            case 15:
                 if(intake.atMidway()){
                     intake.setArmStopMode();
+                    threeBallLowCounter++;
                 }
                 else{
                     intake.setMidway();
@@ -549,8 +563,9 @@ public class Autonomous {
 
     private void threeBallHigh(){
         switch(threeBallHighCounter){
+            
             case 0: 
-                if (Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(5)) {
+                if (Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(0.5)) {
                     drive.tankRun(0, 0); 
                     encoder.setPosition(0); 
                     threeBallHighCounter++; 
@@ -558,6 +573,7 @@ public class Autonomous {
                     drive.tankRun(-0.6, -0.6); 
                 }
             break; 
+            
 
             case 1:
                 if(shooter.checkRPM() && intake.armIsDown() && shooter.checkAligned() && shooter.checkInRange()){                 //shoot preload into high hub
@@ -588,27 +604,29 @@ public class Autonomous {
                 else{
                     intake.setFeedingMode();
                 }
+                   
             break;
 
-            case 3:                                                 //turn right to ball by the wall
-                if(gyro.getYaw() < 140 && gyro.getYaw() > 135){
+            case 3: //turn right to ball by the wall
+                 if(gyro.getYaw() > 178 && gyro.getYaw() < -178){
                     drive.tankRun(0, 0);
                     encoder.setPosition(0);
                     threeBallHighCounter++;
                 }
 
                 else{
-                    if(gyro.getYaw() < 135){
+                    if(gyro.getYaw() < 178 && gyro.getYaw() > 0){
                         drive.tankRun(0.6, -0.6);
                     }
-                    else if(gyro.getYaw() > 140){
+                    else if(gyro.getYaw() > -178 && gyro.getYaw() < 0){
                         drive.tankRun(-0.6, 0.6);
                     }
-                }
+                }                                                 
             break;
-            /*
+
+            
             case 4:                                                   //forward and intake 2nd ball
-                if(!intake.cargoCheck() || Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(6)){       
+                if(!intake.cargoCheck() || Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(2)){       
                     drive.tankRun(0, 0);
                     encoder.setPosition(0);
                     threeBallHighCounter++;
@@ -618,6 +636,7 @@ public class Autonomous {
                     drive.tankRun(0.65, 0.65);
                 }
             break;
+            /*
             case 5:
                 if(Math.abs(encoder.getPosition()) >= convertFeetToEncoderCounts(1.5)){           //back up a foot and a half so you dont hit the wall when you turn around
                     drive.tankRun(0, 0);
@@ -748,7 +767,6 @@ public class Autonomous {
             break;
             */
         }
-
     }
 
 
@@ -762,12 +780,12 @@ public class Autonomous {
                 oneBall();
             break;
 
-            case TWOBALLA:
-                twoBallA();
+            case TWOBALL_L:
+                twoBallLeft();
             break;
 
-            case TWOBALLB:
-                twoBallB();
+            case TWOBALL_R:
+                twoBallRight();
             break;
 
             case THREEBALLLOW:
@@ -777,8 +795,6 @@ public class Autonomous {
             case THREEBALLHIGH:
                 threeBallHigh();
             break;
-
-
         }
 
         limelight.run();
