@@ -111,7 +111,7 @@ public class Robot extends TimedRobot {
   private DigitalInput intakeSensor;
   private Timer intakeTimer;
 
-  private WPI_VictorSPX intakeExt;
+  private WPI_TalonSRX intakeExt;
   private DigitalInput intakeExtChannel;
   private DigitalInput intakeArmLim;
   private SingleChannelEncoder intakeExtEnc;
@@ -189,7 +189,7 @@ public class Robot extends TimedRobot {
 
     intakeBar = new WPI_TalonSRX(3);
     outerRollers = new WPI_VictorSPX(0);
-    intakeExt = new WPI_VictorSPX(1);
+    intakeExt = new WPI_TalonSRX(5);
     intakeSensor = new DigitalInput(4);
     intakeExtChannel = new DigitalInput(5);
     intakeArmLim = new DigitalInput(6);
@@ -198,7 +198,7 @@ public class Robot extends TimedRobot {
 
     intakeBar.setNeutralMode(NeutralMode.Brake);
     outerRollers.setNeutralMode(NeutralMode.Brake);
-    intakeExt.setNeutralMode(NeutralMode.Brake);
+    intakeExt.setNeutralMode(NeutralMode.Coast);
 
     intakeObj = new Intake(intakeBar, intakeExt, outerRollers, intakeExtEnc, intakeSensor, intakeArmLim);
 
@@ -310,7 +310,10 @@ public class Robot extends TimedRobot {
       
       if(mechJoy.getRawButton(1)){
         intakeObj.setIntakeTestingMode();
-        intakeObj.setIntakeSpeed(mechJoy.getY(), mechJoy.getY());
+        intakeObj.setArmTestingMode();
+        intakeObj.setIntakeSpeed(mechJoy.getY(), mechJoy.getY()); 
+        //outerRollers.set(mechJoy.getY());
+        //intakeBar.set(mechJoy.getY());
       }
       else if(mechJoy.getRawButton(2)){
         intakeObj.setArmTestingMode();
@@ -466,45 +469,6 @@ public class Robot extends TimedRobot {
       ///////////////////////////////////////////////////////////
       //                        INTAKE                         //
       ///////////////////////////////////////////////////////////
-      
-      /*
-      if(baseJoy.getRawButton(11)){
-        intakeObj.setIntakeMode();
-      }
-
-      else if(baseJoy.getPOV() == 180){
-        intakeObj.setOverrideMode();
-      }
-
-      else if(baseJoy.getPOV() == 0){
-        intakeObj.setOutakeMode();
-      }
-
-      else if(baseJoy.getRawButton(1)){
-        intakeObj.setFeedingMode();
-      }
-      else{
-        intakeObj.setIntakeStopMode();
-      }
-
-      if (mechJoy.getRawButton(6)){
-        intakeObj.setExtend();
-      }
-
-      else if(mechJoy.getRawButton(11)){
-        intakeObj.setMidway();
-      }
-
-      else{
-        if(!intakeObj.cargoCheck()){ 
-          intakeObj.setMidway();
-        }
-        
-        else{
-          intakeObj.setArmStopMode();
-        }
-      }
-      */
       
       if(baseJoy.getPOV() == 180){
         intakeObj.setOverrideMode();

@@ -158,7 +158,7 @@ public class Intake {
     //method for the motor intaking
     public void setIntakeSpeed(double speedForBar, double speedForRollers){     
         intakeBar.set(-speedForBar);
-        outerRollers.set(-speedForRollers); // test motor
+        outerRollers.set(speedForRollers); // test motor
     }
 
     //output or outtaking
@@ -271,11 +271,12 @@ public class Intake {
         //COMPETITION DISPLAYS
         SmartDashboard.putBoolean("CARGO IS IN", !cargoCheck());
         SmartDashboard.putBoolean("Arm is down", armIsDown());
-
+        SmartDashboard.putNumber("Encoder for intake extension", intakeExtEnc.get());    // displays the encoder count
         //TESTING DISPLAYS
-        /*
+        
         SmartDashboard.putBoolean("Intake Sensor", cargoCheck());   // displays if the sensor is being triggered
-        SmartDashboard.putString(" Intake mode", intakeMode.toString());          // displays the current state of the intake
+        SmartDashboard.putString("Intake mode", intakeMode.toString());          // displays the current state of the intake
+        SmartDashboard.putString("Intake Arm Mode", armMode.toString());
         SmartDashboard.putString("Arm mode", armMode.toString());
         SmartDashboard.putNumber("Arm Timer", armTimer.get());             // displays the time to the timer
         SmartDashboard.putNumber("Encoder for intake extension", intakeExtEnc.get());    // displays the encoder count
@@ -284,7 +285,7 @@ public class Intake {
         SmartDashboard.putNumber("Case statement counter", counter);
         SmartDashboard.putBoolean("BELOW RETRACT", belowRetract());
         SmartDashboard.putBoolean("BELOW MIDWAY", belowMidway());
-        */
+        
     }
 
     public void intakeRun(){
@@ -305,6 +306,9 @@ public class Intake {
 
             case OVERRIDE:
             setIntakeSpeed(intakeSpeed, outerRollerSpeed);      // FIX OVERRIDE; BYPASS ARM GOING UP TOMORROW
+            break;
+
+            case TESTING:
             break;
 
             case STOP:

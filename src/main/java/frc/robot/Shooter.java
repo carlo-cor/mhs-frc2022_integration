@@ -85,7 +85,7 @@ public class Shooter{
         SmartDashboard.putBoolean("Target Seen?", limelight.checkTargetSeen());
         
         //USED ONLY FOR TESTING:
-        /*
+        
         SmartDashboard.putNumber("Actual RPM", getActualRPM());
         SmartDashboard.putNumber("Ideal RPM", getIdealRPM());
         SmartDashboard.putNumber("Position Error", pid.getPositionError());
@@ -94,7 +94,7 @@ public class Shooter{
         SmartDashboard.putNumber("Shooter Output:", shooterMotor.get());
         SmartDashboard.putNumber("Align Speed", alignSpeed);
         SmartDashboard.putNumber("Range Speed", getInRangeSpeed);
-        */
+        
 
         //PID TESTING
         /*
