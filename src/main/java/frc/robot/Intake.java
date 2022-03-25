@@ -19,12 +19,12 @@ public class Intake {
     private Timer armTimer;                     // timer for the arm extension
 
     //SENSOR VALUES:
-    private double holdDelay = 0.08;            // the delay time (TEST) 
-    private double midwayDelay = 0.7;           // the arm delay time for retracting midway (TEST)
-    private double retractDelay = 1.15;         // the arm delay time fo retracting fully (TEST)
-    private double extEncUp = -170;             // encoder for the extension going up (TEST) //-197 //-193 //-197'
+    private double holdDelay = 0.08;            // the delay time 
+    private double midwayDelay = 0.7;           // the arm delay time for retracting midway 
+    private double retractDelay = 1.15;         // the arm delay time fo retracting fully 
+    private double extEncUp = -170;             // encoder for the extension going up 
     private double extEncMidWay = -90;          // Encoder for the extension being midway
-    private double extEncDown = 190;            // encoder for the extension going down(TEST) //192 //199 //186
+    private double extEncDown = 190;            // encoder for the extension going down
     private double insideRobotPerimeter = -140; // Encoder count for bringing the arm extension to the point where it is inside the robot perimeter
 
     //SPEEDS:
@@ -32,13 +32,13 @@ public class Intake {
     private double feedingSpeed = 1;          // the speed of the motor when feeding
     private double outtakeSpeed = 1;          // the speed of the motor outtaking
     
-    private double intakeExtSpeed = 1;        // speed for intake extension (TEST)
+    private double intakeExtSpeed = 1;        // speed for intake extension 
     private double intakeRetractSpeed = 1;    // speed for intake extensin when it retracts 
-    private double outerRollerSpeed = 1;      // the speed of the outerRoller motor (TEST)
+    private double outerRollerSpeed = 1;      // the speed of the outerRoller motor 
 
     //COUNTERS:
-    private double extCounter = 0; 
-    private int counter;
+    private double extCounter = 0;            // counter used for case statements for the extension
+    private int counter;                      // counter used for case statements for the intake bar 
 
     public Intake(MotorController newIntakeBar, MotorController newIntakeExt, MotorController newOuterRollers, SingleChannelEncoder enc, DigitalInput newIntakeSensor, DigitalInput newArmLimit){
         intakeBar = newIntakeBar;
@@ -106,7 +106,7 @@ public class Intake {
         armMode = armState.MIDWAY;        //sets mode of the arm to midway
     }
     
-    public void setArmOverride(){
+    public void setArmOverride(){        //sets the arm extension mode to override
         armMode = armState.OVERRIDE;
     }
 
@@ -134,8 +134,8 @@ public class Intake {
         return intakeExtEnc.get() <= insideRobotPerimeter;      //returns true if the encoder for the extension is at the encoder count for the perimeter (used for hang)
     }
 
-    public boolean atSensor(){
-        return intakeTimer.get() > holdDelay; 
+    public boolean atSensor(){                                  // returns true when the time has passed the time for the hold delay
+        return intakeTimer.get() > holdDelay;                  // ball at the sensor 
     }
 
     public void setBarSpeed(double barSpeed){                   //sets the speed for the intake bar
@@ -158,13 +158,13 @@ public class Intake {
     //method for the motor intaking
     public void setIntakeSpeed(double speedForBar, double speedForRollers){     
         intakeBar.set(-speedForBar);
-        outerRollers.set(speedForRollers); // test motor
+        outerRollers.set(speedForRollers); 
     }
 
     //output or outtaking
     public void setOuttakeSpeed(double speedForBar, double speedForRollers){ 
         intakeBar.set(speedForBar);
-        outerRollers.set(speedForRollers); // test motor
+        outerRollers.set(-speedForRollers); 
     }
 
     //stops motor
@@ -190,7 +190,8 @@ public class Intake {
         }
     }
 
-    private void midway(double speedForIntakeExt){  //moves the intake extension arm to midway
+    //moves the intake extension arm to midway
+    private void midway(double speedForIntakeExt){  
         armTimer.start();
         if(belowMidway()){
             intakeExt.set(-speedForIntakeExt);
@@ -254,15 +255,15 @@ public class Intake {
         intakeExtEnc.reset();
     }
 
-    public void startTimer(){
+    public void startTimer(){   // starts the timer
         armTimer.start();
     }
 
-    public void stopTimer(){
+    public void stopTimer(){    // stops the timer
         armTimer.stop();
     }
 
-    public void resetTimer(){
+    public void resetTimer(){   // resets the timer 
         armTimer.reset();
     }
 
@@ -271,12 +272,10 @@ public class Intake {
         //COMPETITION DISPLAYS
         SmartDashboard.putBoolean("CARGO IS IN", !cargoCheck());
         SmartDashboard.putBoolean("Arm is down", armIsDown());
-        SmartDashboard.putNumber("Encoder for intake extension", intakeExtEnc.get());    // displays the encoder count
+
         //TESTING DISPLAYS
-        
         SmartDashboard.putBoolean("Intake Sensor", cargoCheck());   // displays if the sensor is being triggered
-        SmartDashboard.putString("Intake mode", intakeMode.toString());          // displays the current state of the intake
-        SmartDashboard.putString("Intake Arm Mode", armMode.toString());
+        SmartDashboard.putString(" Intake mode", intakeMode.toString());          // displays the current state of the intake
         SmartDashboard.putString("Arm mode", armMode.toString());
         SmartDashboard.putNumber("Arm Timer", armTimer.get());             // displays the time to the timer
         SmartDashboard.putNumber("Encoder for intake extension", intakeExtEnc.get());    // displays the encoder count
@@ -285,9 +284,10 @@ public class Intake {
         SmartDashboard.putNumber("Case statement counter", counter);
         SmartDashboard.putBoolean("BELOW RETRACT", belowRetract());
         SmartDashboard.putBoolean("BELOW MIDWAY", belowMidway());
-        
     }
 
+    //run methods for the intake 
+    // includes case statements for the intake and the extension
     public void intakeRun(){
         displayMethod();
         switch(intakeMode){
@@ -305,10 +305,7 @@ public class Intake {
             break;
 
             case OVERRIDE:
-            setIntakeSpeed(intakeSpeed, outerRollerSpeed);      // FIX OVERRIDE; BYPASS ARM GOING UP TOMORROW
-            break;
-
-            case TESTING:
+            setIntakeSpeed(intakeSpeed, outerRollerSpeed);     
             break;
 
             case STOP:

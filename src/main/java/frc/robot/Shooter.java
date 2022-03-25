@@ -1,9 +1,8 @@
 package frc.robot;
 
+import java.util.LinkedList;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
-//(TEST)
 import edu.wpi.first.math.controller.PIDController;
 
 public class Shooter{
@@ -14,10 +13,11 @@ public class Shooter{
     //CLASS VARIABLES
     private Limelight limelight;
     private PIDController pid;
+    LinkedList<Boolean> alignList = null;
 
     //METHOD VARIABLES
-    public double alignSpeed = 0;
-    public double getInRangeSpeed = 0;
+    private double alignSpeed = 0;
+    private double getInRangeSpeed = 0;
 
     //CONSTANTS
     private final double cameraHeight = 1.79166667;                 //height of the limelight from the ground
@@ -28,18 +28,16 @@ public class Shooter{
     private final double maximumTrackingDistance = 15;              //maximum distance limelight can track accurately
     private final double cameraToBumperDistance = 1.458333;         //distance from camera to bumper
 
-    private final double rpmToSpeed = 0.000155;
-    private final double lowHubRPM = 2500;
-    private final double launchPadRPM = 6350;
+    private final double rpmToSpeed = 0.000155;                     //proportion constant to convert rpm to motor speed
+    private final double lowHubRPM = 2500;                          //desired rpm for the low hub
+    private final double launchPadRPM = 6350;                       //desired rpm for the upper hub from the closest launch pad
 
     //CONSTRUCTOR
     public Shooter(Limelight newlimelight, WPI_TalonFX newShooterMotor){    
         limelight = newlimelight;
         shooterMotor = newShooterMotor;
-
+        alignList = new LinkedList<Boolean>();
         pid = new PIDController(0.0002, 0.00002, 0);   
-
-        //PLAY AROUND WITH LATER (PID TUNING IS STILL UNFINISHED!!!) (old = -0.5, 0.5)
         pid.setIntegratorRange(-1, 1);
     }
 
@@ -85,7 +83,7 @@ public class Shooter{
         SmartDashboard.putBoolean("Target Seen?", limelight.checkTargetSeen());
         
         //USED ONLY FOR TESTING:
-        
+        /*
         SmartDashboard.putNumber("Actual RPM", getActualRPM());
         SmartDashboard.putNumber("Ideal RPM", getIdealRPM());
         SmartDashboard.putNumber("Position Error", pid.getPositionError());
@@ -94,7 +92,7 @@ public class Shooter{
         SmartDashboard.putNumber("Shooter Output:", shooterMotor.get());
         SmartDashboard.putNumber("Align Speed", alignSpeed);
         SmartDashboard.putNumber("Range Speed", getInRangeSpeed);
-        
+        */
 
         //PID TESTING
         /*
@@ -112,11 +110,6 @@ public class Shooter{
         if(shooterState == state.STOP){
             return false;
         }
-        //DELETE LATER
-        else if(shooterState == state.TESTING){
-            return true;
-        }
-        //
         else{
             return pid.atSetpoint();
         }
@@ -124,12 +117,41 @@ public class Shooter{
     
     //Check if the shooter is aligned with the hub
     public boolean checkAligned(){
-        return limelight.getXOffset() < 0.5 && limelight.getXOffset() > -0.5 && limelight.checkTargetSeen();
+        //Check to see if we think we're aligned with the target
+        Boolean tempResult = Math.abs(getAlignSpeed()) < 0.01 && limelight.checkTargetSeen();
+
+        //Append the result of the alignment check to the list
+        alignList.add(tempResult);
+    
+        //Check all values in list to see if they're true
+        Boolean finalResult = true;
+        for (Boolean value : alignList) { 
+            finalResult = value && finalResult;
+        }
+        //Check the size of the list
+        if (alignList.size() < 3) {
+            return false;
+        }
+        else{
+            //Remove the oldest result
+            alignList.remove();
+
+            //Return the final value.
+            return finalResult;
+        }
     }
 
     //Checks if the robot is able to clear the upper hub & if the limelight reading is accurate 
     public boolean checkInRange(){
         return getDistance() > minimumShootingDistance && getDistance() < maximumTrackingDistance;
+    }
+
+    public double getAlignSpeed(){
+        return alignSpeed;
+    }
+
+    public double getRangeSpeed(){
+        return getInRangeSpeed;
     }
 
     //Calculates the distance from the BUMPER to the CENTER OF THE HUB
@@ -146,6 +168,16 @@ public class Shooter{
         }
     }
 
+    //Set the turning speed for robot to align
+    private void setAlignSpeed(double newAlignSpeed){
+        alignSpeed = newAlignSpeed;
+    }
+
+    //Set the speed for robot to get in range
+    private void setRangeSpeed(double newRangeSpeed){
+        getInRangeSpeed = newRangeSpeed;
+    }
+
     //Converts the Sensor 'Velocity' to RPM (just for more convenience)
     private double getActualRPM(){
         double rawVelocity = shooterMotor.getSelectedSensorVelocity();
@@ -158,11 +190,8 @@ public class Shooter{
             return 0;
         }
         else{
-            /*TRIAL 1 DATA (EXPONENTIAL): 
-            return 223.744 * Math.pow(1.13965, getDistance()) + 4026.4;
-            */
             //TRIAL 2 DATA (QUADRATIC):
-            return 6.45688 * Math.pow(getDistance(), 2) + 13.3939 * getDistance() + 4073.73 - 420.69;
+            return (6.45688 - 1.45688) * Math.pow(getDistance(), 2) + 13.3939 * getDistance() + 4073.73 - 320.69;
         }
     }
 
@@ -191,18 +220,20 @@ public class Shooter{
 
         limelight.setTrackingMode();
 
-        if(error > 1){
-            alignSpeed = (kP * error) + minCommand;
+        //if TOO FAR to the RIGHT, turn left
+        if(error > 0.75){
+            setAlignSpeed((kP * error) + minCommand);
         }
-        else if(error < -1){
-            alignSpeed = (kP * error) - minCommand;
+        //if TOO FAR to the LEFT, turn right
+        else if(error < -0.75){
+            setAlignSpeed((kP * error) - minCommand);
         }
         else{
-            alignSpeed = 0;
+            setAlignSpeed(0);
         }
     }
 
-    //Gets the robot to an optimal shooting range for the upper hub as long as limelight sees target (still need to test)
+    //Gets the robot to an optimal shooting range for the upper hub as long as limelight sees the target
     private void getInRange(){
         double kP = 0.025;
         double minCommand = 0.4;
@@ -211,17 +242,17 @@ public class Shooter{
         limelight.setTrackingMode();
 
         //if TOO CLOSE to the hub, move BACKWARDS
-        if(getDistance() > 0 && getDistance() < minimumShootingDistance + 0.5){ 
+        if(getDistance() > 0 && getDistance() < minimumShootingDistance){ 
             error = minimumShootingDistance - getDistance(); 
-            getInRangeSpeed = (kP * error) + minCommand;    //0.45
+            setRangeSpeed((kP * error) + minCommand);
         }
         //if TOO FAR to the hub, move FORWARD
-        else if(getDistance() > maximumTrackingDistance - 0.5){ 
+        else if(getDistance() > maximumTrackingDistance){ 
             error = maximumTrackingDistance - getDistance();
-            getInRangeSpeed = (kP * error) - minCommand;
+            setRangeSpeed((kP * error) - minCommand);
         }
         else{
-            getInRangeSpeed = 0;
+            setRangeSpeed(0);
         }     
     }
 
@@ -229,16 +260,17 @@ public class Shooter{
     private void stop(){
         pid.reset();
         shooterMotor.stopMotor();
-        alignSpeed = 0;
-        getInRangeSpeed = 0;
+        setAlignSpeed(0);
+        setRangeSpeed(0);
+        alignList.clear();
     }
 
     //Method to shoot in the low hub
     private void lowHubShoot(){
         pid.setTolerance(80);
 
-        alignSpeed = 0;
-        getInRangeSpeed = 0;
+        setAlignSpeed(0);
+        setRangeSpeed(0);
 
         shooterMotor.set(setSpeed(lowHubRPM));
     }
@@ -247,12 +279,12 @@ public class Shooter{
     private void upperHubShoot(){
         limelight.setTrackingMode();
 
-        pid.setTolerance(70);
+        pid.setTolerance(50);
 
         align();
         getInRange();
 
-        if(getDistance() > minimumShootingDistance && getDistance() < maximumTrackingDistance){
+        if(getDistance() > (minimumShootingDistance - 0.1) && getDistance() < (maximumTrackingDistance + 0.1)){
             shooterMotor.set(setSpeed(getIdealRPM()));
         }
         else{
@@ -267,14 +299,14 @@ public class Shooter{
         pid.setTolerance(80);
 
         align();
-        getInRangeSpeed = 0;
+        setRangeSpeed(0);
 
         shooterMotor.set(setSpeed(launchPadRPM));
     }
 
     private void testing(){
-        align();
-        getInRange();
+        //align();
+        //getInRange();
     }
 
     public void run(){
@@ -295,9 +327,7 @@ public class Shooter{
                testing();
             break;
         }
-
         limelight.run();
-
     }
 
 }

@@ -63,7 +63,7 @@ public class WeightAdjuster {
     }
 
     public boolean beforeDownLim() {
-        return ((weightEncoder.get() >= weightMaxDown) && (weightTimer.get() < 4.0)); 
+        return ((weightEncoder.get() >= weightMaxDown) && (weightTimer.get() < 3.0)); // NOTE AT COMP CHANGE DELAY TO 1.5 
     }
 
     private boolean beforeHomeLim() {
@@ -80,7 +80,7 @@ public class WeightAdjuster {
 
     //METHODS
     private void weightUp(){        
-        if(beforeUpLim()){     //when the encoder is greater than the encoder limit (max UP position), go up
+        if(beforeUpLim()){                                //when the weight encoder is less than the max UP encoder, go up 
             weightAdjuster.set(weightSpeedUp);
         }
 
@@ -89,15 +89,15 @@ public class WeightAdjuster {
         }
     }
 
-    public void weightUpElevDown() {              //drives weight to up limit when elevator is down
-        if (elevDownRange()) {
+    public void weightUpElevDown() {              //goes to the up limit when elevator is down 
+        if (elevDownRange()) {                      //when weight encoder is less than the up limit(the one for when elev is down), go up
             weightAdjuster.set(0); 
         } else {
             weightAdjuster.set(weightSpeedUp); 
         }
     }
 
-    private void weightDown(){
+    private void weightDown(){                      //when weight encoder is higher than the max down encoder, go down 
         weightTimer.start();
         if(beforeDownLim()){       
         weightAdjuster.set(weightSpeedDown);
@@ -110,11 +110,11 @@ public class WeightAdjuster {
     }
 
     private void weightHome(){
-        if(afterHomeLim()){      //when the weight is down, adjust the weight inwards
+        if(afterHomeLim()){      //when the weight is down, adjust the weight up
             weightAdjuster.set(weightSpeedUp);
         }
 
-        else if(beforeHomeLim()){      //when the weight is up, adjust the weight outwards
+        else if(beforeHomeLim()){      //when the weight is up, adjust the weight down
             weightAdjuster.set(weightSpeedDown);
         }
 
@@ -128,11 +128,11 @@ public class WeightAdjuster {
         weightTimer.stop();
     }
 
-    public void manualWeight(double speed){     //manually control the weight adjuster
+    public void manualWeight(double speed){     //manually control the weight adjuster with joystick
         weightAdjuster.set(speed);
     }
 
-    public void resetEncoder(){
+    public void resetEncoder(){                 //reset encoder 
         weightEncoder.reset();
     }
 
@@ -147,7 +147,7 @@ public class WeightAdjuster {
     public void run(){
 
         SmartDashboard.putNumber("WEIGHT ENCODER", weightEncoder.get());
-        SmartDashboard.putNumber("SPEED", weightAdjuster.get()); 
+        SmartDashboard.putNumber("WEIGHT SPEED", weightAdjuster.get()); 
         SmartDashboard.putBoolean("BEFORE UP LIM", beforeUpLim());
         SmartDashboard.putBoolean("BEFORE DOWN LIM", beforeDownLim());
         SmartDashboard.putBoolean("BEFORE HOME LIM", beforeHomeLim()); 

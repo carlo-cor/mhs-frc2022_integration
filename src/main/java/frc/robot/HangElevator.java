@@ -30,7 +30,8 @@ public class HangElevator{
     private double slowExtendSpeed = 0.3;
     private double slowRetractSpeed = -0.3;
     private double pivotableEnc = 170000; 
-    public double equalToPivot = 46136.0;                            //encoder count for elevator to be same height as pivot       //82586, 82530, 82238
+    public double equalToPivot = 46136.0;                            //encoder count for elevator to be same height as pivot
+    private double halfPosition = 0.5 * 206000;
 //47400, 44414,48730,44000
     
     //CONSTRUCTOR
@@ -114,6 +115,10 @@ public class HangElevator{
 
     public boolean equalToPivotRange() {
         return (elevatorEncoder.getIntegratedSensorPosition() <= (equalToPivot + 30000)) && (elevatorEncoder.getIntegratedSensorPosition() >= (equalToPivot - 15000)); 
+    }
+
+    public boolean startPivotingInward(){
+        return (elevatorEncoder.getIntegratedSensorPosition() <= halfPosition);
     }
 
     //STOP

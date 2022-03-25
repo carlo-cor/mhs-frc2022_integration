@@ -100,7 +100,7 @@ public class Robot extends TimedRobot {
   |  INTAKE | BAG MOTOR | TALON SRX: 3
   |  HOLD SENSOR  | DIO PHOTOELECTRIC SENSOR: 4
   |  INTAKE TIMER | DELAY FOR INTAKING
-  |  INTAKE ARM MOTOR   | BOSCH MOTOR | VICTOR SPX: 1
+  |  INTAKE ARM MOTOR   | BOSCH MOTOR | TALON SRX: 5
   |  INTAKE ARM CHANNEL | 6
   |  INTAKE ARM ENCODER | TO INTAKE ARM MOTOR
   |  INTAKE ROLLER | BOSCH MOTOR | VICTOR SPX: 0
@@ -179,7 +179,7 @@ public class Robot extends TimedRobot {
     frontRight.setIdleMode(IdleMode.kCoast);
     backRight.setIdleMode(IdleMode.kCoast);
   
-    relEnc = backRight.getEncoder();
+    relEnc = frontLeft.getEncoder();
     
     driveObj = new Drive(frontLeft, backLeft, frontRight, backRight);
     
@@ -286,8 +286,6 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-   
-
       autonObj.display();
       autonObj.run();
   }
@@ -305,6 +303,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     autonObj.display();
+    shooterObj.displayValues();
     if(mechJoy.getRawAxis(3) < 0){
       SmartDashboard.putString("MODE: ", "TESTING");
       
@@ -381,7 +380,7 @@ public class Robot extends TimedRobot {
       ///////////////////////////////////////////////////////////
       //                        DRIVE                          //
       ///////////////////////////////////////////////////////////
-      driveObj.arcadeDrive(baseJoy.getX() + shooterObj.alignSpeed, baseJoy.getY() + shooterObj.getInRangeSpeed);
+      driveObj.arcadeDrive(baseJoy.getX() + shooterObj.getAlignSpeed(), baseJoy.getY() + shooterObj.getRangeSpeed());
       //  driveObj.tankDrive(baseJoy.getY(), baseTwoJoy.getY());
       
       ///////////////////////////////////////////////////////////
@@ -451,6 +450,11 @@ public class Robot extends TimedRobot {
         hangElevObj.setRetractLimSlow();
       }
 
+      else if(mechJoy.getRawButton(2)){
+        hangObj.setTesting();
+        hangPivotObj.setPivInwardLim();
+      }
+
       else{
         hangObj.setNothing();
       }
@@ -513,14 +517,11 @@ public class Robot extends TimedRobot {
       //                         SHOOTER                       //
       ///////////////////////////////////////////////////////////
       
-      if(baseJoy.getRawButton(2)){  // 3 during comp
-        //shooterObj.setLowHubShoot();  // 75% when testing 
-        //shooterObj.setUpperHubShoot();
-        shooterObj.setTesting();
-        shooterObj.setManual(0.6);
+      if(baseJoy.getRawButton(2)){  
+        shooterObj.setUpperHubShoot();
       }
       
-      else if(baseJoy.getRawButton(3)){ // 1 during comp
+      else if(baseJoy.getRawButton(3)){ 
         shooterObj.setLowHubShoot();
       }
 
@@ -546,13 +547,13 @@ public class Robot extends TimedRobot {
     /** This function is called once when the robot is disabled. */
     @Override
     public void disabledInit() {
-      
+      autonObj.reset();
     }
 
     /** This function is called periodically when disabled. */
     @Override
     public void disabledPeriodic() {
-
+    
       ///////////////////////////////////////////////////////////
       //                         AUTONOMOUS                    //
       ///////////////////////////////////////////////////////////
@@ -563,24 +564,26 @@ public class Robot extends TimedRobot {
       }
 
       else if(baseJoy.getRawButton(11)){
-        SmartDashboard.putString("AUTONOMOUS: ", "TWO BALL LEFT");
-        autonObj.setTwoBallLeft();
+        SmartDashboard.putString("AUTONOMOUS: ", "TWO BALL A");
+        autonObj.setTwoBallA();
       }
 
       else if(baseJoy.getRawButton(12)){
-        SmartDashboard.putString("AUTONOMOUS: ", " TWO BALL RIGHT");
-        autonObj.setTwoBallTRight();
+        SmartDashboard.putString("AUTONOMOUS: ", " TWO BALL B");
+        autonObj.setTwoBallB();
       }
 
       else if(baseJoy.getRawButton(9)){
-        SmartDashboard.putString("AUTONOMOUS: ", "THREE BALL HIGH");
-        autonObj.setThreeBallHigh();
+        SmartDashboard.putString("AUTONOMOUS: ", "THREE BALL");
+        autonObj.setThreeBall();
       }
 
+      /*
       else if(baseJoy.getRawButton(10)){
         SmartDashboard.putString("AUTONOMOUS: ", "THREE BALL LOW");
         autonObj.setThreeBallLow();
       }
+      */
       
       else if(baseJoy.getRawButton(1)){
         SmartDashboard.putString("AUTONOMOUS: ", "NOTHING");
