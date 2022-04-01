@@ -63,7 +63,7 @@ public class WeightAdjuster {
     }
 
     public boolean beforeDownLim() {
-        return ((weightEncoder.get() >= weightMaxDown) && (weightTimer.get() < 3.0)); // NOTE AT COMP CHANGE DELAY TO 1.5 
+        return ((weightEncoder.get() >= weightMaxDown) && (weightTimer.get() < 1.80)); // NOTE AT COMP CHANGE DELAY TO 1.5 
     }
 
     private boolean beforeHomeLim() {

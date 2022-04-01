@@ -147,6 +147,45 @@ public class Hang {
             }                                      
             break;
 
+ /*           case 0:
+            if(pivot.frontLimitTouched() && elevator.bottomLimitTouched() && intake.armIsDown()){
+                pivot.setStop();
+                pivot.resetEnc();
+                intake.setArmStopMode();
+                elevator.setElevatorStop();
+                elevator.encoderReset();
+                weightAdjuster.resetEncoder();
+                weightAdjuster.resetTimer();
+                setUpMidCount++;
+            }
+
+            else{
+                if(pivot.frontLimitTouched()){
+                    pivot.setStop();
+                    pivot.resetEnc();
+                }
+                else{
+                    pivot.setPivInwardLim();
+                }
+
+                if(elevator.bottomLimitTouched()){
+                    elevator.setElevatorStop();
+                    elevator.encoderReset();
+                }
+                else{
+                    elevator.setRetractLimFast();
+                }
+
+                if(intake.armIsDown()){
+                    intake.setArmStopMode();
+                }
+
+                else{
+                    intake.setExtend();
+                }
+            }
+            break; */
+
             case 1:                     //EXTEND ELEV AND PIVOT FOR SETUP POS.
             if(elevator.topLimitTouched() && pivot.afterOutwardEnc() && !intake.belowRetract() && !weightAdjuster.beforeDownLim()){
                 pivot.setStop();
