@@ -23,9 +23,9 @@ public class HangElevator{
     //VALUES
     private double closeTopLimit = 0.85* 206000;                  //close to top limit switch enc. value         
     private double closeBotLimit = 0.15* 206000;                 //close to bottom limit switch enc. value
-    private double extendSpeed = 0.5;                         //counter-clockwise to extend (-speed)
+    private double extendSpeed = 0.55;                         //counter-clockwise to extend (-speed)
     private double closeExtendSpeed = 0.25;
-    private double retractSpeed = -0.5;                         //clockwise to retract (+speed)
+    private double retractSpeed = -0.55;                         //clockwise to retract (+speed)
     private double closeRetractSpeed = -0.25;
     private double slowExtendSpeed = 0.3;
     private double slowRetractSpeed = -0.3;

@@ -483,7 +483,33 @@ public class Autonomous {
                     }
                 }   
             break;
-        } 
+
+            case 13:
+                //REV SHOOTER
+                if(shooter.checkRPM()){
+                    twoBallBCounter++;
+                }
+                else{
+                    shooter.setLowHubShoot();
+                }
+            break;
+
+            case 14:
+                //SHOOT OPPONENT BALL OUT
+                if(intake.cargoCheck() && timer.get() >= revDelay){
+                    timer.stop();
+                    timer.reset();
+
+                    intake.setIntakeStopMode();
+                    shooter.setStop();
+                    twoBallBCounter++;
+                }
+                else{
+                    timer.start();
+                    intake.setFeedingMode();
+                }
+            break;
+        }   
     }
 
     private void threeBall(){
@@ -624,16 +650,16 @@ public class Autonomous {
 
             case 9:                         
                 //TURN LEFT TO FACE THIRD BALL                                                        
-                if(gyro.getYaw() < -57f && gyro.getYaw() > -60f){                             
+                if(gyro.getYaw() < -60f && gyro.getYaw() > -63f){                             
                     drive.tankRun(0, 0);   
                     encoder.setPosition(0);
                     threeBallCounter++;
                 }
                 else{
-                    if(gyro.getYaw() >= -57f){
+                    if(gyro.getYaw() >= -60f){
                         drive.tankRun(-0.45, 0.45);
                     }
-                    else if(gyro.getYaw() <= -60f){
+                    else if(gyro.getYaw() <= -63f){
                         drive.tankRun(0.25, -0.25);
                     }
                 }

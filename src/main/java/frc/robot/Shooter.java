@@ -29,7 +29,7 @@ public class Shooter{
     private final double cameraToBumperDistance = 1.458333;         //distance from camera to bumper
 
     private final double rpmToSpeed = 0.000155;                     //proportion constant to convert rpm to motor speed
-    private final double lowHubRPM = 2500;                          //desired rpm for the low hub
+    private final double lowHubRPM = 2000;                          //desired rpm for the low hub
     private final double launchPadRPM = 6350;                       //desired rpm for the upper hub from the closest launch pad
 
     //CONSTRUCTOR
