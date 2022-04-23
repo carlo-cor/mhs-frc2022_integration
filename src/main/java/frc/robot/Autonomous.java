@@ -26,7 +26,7 @@ public class Autonomous {
 
     //CONSTANTS:
     private final double encCountsPerFoot = 11.1029532;
-    private final double revDelay = 0.150;
+    private final double revDelay = 0.200;
     
     public Autonomous(Drive newDrive, Shooter newShooter, Intake newIntake, RelativeEncoder newEncoder, AHRS newGyro, Limelight newLimelight){
         drive = newDrive;       
@@ -650,16 +650,16 @@ public class Autonomous {
 
             case 9:                         
                 //TURN LEFT TO FACE THIRD BALL                                                        
-                if(gyro.getYaw() < -60f && gyro.getYaw() > -63f){                             
+                if(gyro.getYaw() < -62f && gyro.getYaw() > -65f){                             
                     drive.tankRun(0, 0);   
                     encoder.setPosition(0);
                     threeBallCounter++;
                 }
                 else{
-                    if(gyro.getYaw() >= -60f){
+                    if(gyro.getYaw() >= -62f){
                         drive.tankRun(-0.45, 0.45);
                     }
-                    else if(gyro.getYaw() <= -63f){
+                    else if(gyro.getYaw() <= -65f){
                         drive.tankRun(0.25, -0.25);
                     }
                 }

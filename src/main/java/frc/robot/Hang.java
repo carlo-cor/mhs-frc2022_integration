@@ -215,7 +215,7 @@ public class Hang {
             break;
 
             case 2:                      //DELAY FOR DRIVERS TO DRIVE TO RUNG
-            if (timer.get() >= 1.5) {     
+            if (timer.get() >= 1.0) {     
                 timer.stop();   //after five seconds, move on to the next case
                 setUpMidCount++; 
             }

@@ -191,7 +191,7 @@ public class Shooter{
         }
 
         else if(getDistance() > minimumShootingDistance && getDistance() < 9.5){
-            return ((6.45688 - 1.45688) * Math.pow(getDistance(), 2) + 13.3939 * getDistance() + 4073.73 - 69);
+            return ((6.45688 - 1.6) * Math.pow(getDistance(), 2) + 13.3939 * getDistance() + 4073.73 - 254);
         }
 
         else{
